@@ -21,8 +21,7 @@ export default function DashboardScreen({ navigation }) {
             onPress={() => navigation.navigate('Panduan')} // Navigasi ke PHQ9
           >
             <Icon name="emoticon-happy-outline" size={40} color="#fff" />
-            <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Stress</Text>
-            <Text>Mengukur tingkat stress</Text>
+            <Text style={[styles.gridButtonText, styles.gridButtonText]}>mengukur tingkat Stress</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -30,7 +29,7 @@ export default function DashboardScreen({ navigation }) {
             onPress={() => navigation.navigate('FirstAid')} // Navigasi ke FirstAid
           >
             <Icon name="heart-pulse" size={40} color="#004D40" />
-            <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Pertolongan Pertama</Text>
+            <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Panduan Pertolongan Pertama</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -38,7 +37,7 @@ export default function DashboardScreen({ navigation }) {
             onPress={() => navigation.navigate('Lifestyle')} // Navigasi ke Lifestyle
           >
             <Icon name="dumbbell" size={40} color="#004D40" />
-            <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Gaya Hidup</Text>
+            <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Pengukur Gaya Hidup</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -46,7 +45,7 @@ export default function DashboardScreen({ navigation }) {
             onPress={() => navigation.navigate('PSQI')} // Navigasi ke PSQI
           >
             <Icon name="bed-outline" size={40} color="white" />
-            <Text style={styles.gridButtonText}>Kualitas Tidur</Text>
+            <Text style={styles.gridButtonText}>Pengukur Kualitas Tidur</Text>
           </TouchableOpacity>
         </View>
 

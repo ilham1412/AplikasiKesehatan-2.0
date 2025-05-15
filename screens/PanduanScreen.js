@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Contoh menggunakan MaterialCommunityIcons
 
-export default function panduanScreen({ navigation }) {
+export default function PanduanScreen({ navigation }) {
   return (
     <ScrollView style={styles.overallContainer}>
       

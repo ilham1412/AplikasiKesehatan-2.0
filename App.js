@@ -1,20 +1,29 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import DashboardScreen from './screens/DashboardScreen';
+import PHQ9Screen from './screens/PHQ9Screen';
+import PSQIScreen from './screens/PSQIScreen';
+import LifestyleScreen from './screens/LifestyleScreen';
+import FirstAidScreen from './screens/FirstAidScreen';
+import PHQ9ResultScreen from './screens/PHQ9ResultScreen';
+import WelcomeScreen from './screens/WelcomeScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+        <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PHQ9" component={PHQ9Screen} />
+        <Stack.Screen name="PSQI" component={PSQIScreen} />
+        <Stack.Screen name="Lifestyle" component={LifestyleScreen} />
+        <Stack.Screen name="FirstAid" component={FirstAidScreen} />
+        <Stack.Screen name="PHQ9Result" component={PHQ9ResultScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

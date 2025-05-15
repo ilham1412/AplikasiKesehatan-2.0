@@ -2,17 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Contoh menggunakan MaterialCommunityIcons
 
-// Anda perlu mengganti 'path/to/your/logo.png' dengan path logo Anda
-// Jika tidak ada logo, Anda bisa menghapus komponen Image atau menggantinya dengan Icon
-// const logoImage = require('./path/to/your/logo.png');
-
 export default function DashboardScreen({ navigation }) {
   return (
     <ScrollView style={styles.overallContainer}>
       
       <View style={styles.headerContainer}>
       <Image
-      source={require('../assets/images/MASEH IJO.png')}  // sesuaikan path
+      source={require('../assets/images/MASEH IJO.png')}  //path
       style={styles.logoImage}
       resizeMode="contain"
       />
@@ -22,15 +18,16 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.gridContainer}>
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonTeal]}
-            onPress={() => navigation.navigate('PHQ9')} // Navigasi tetap ke PHQ9
+            onPress={() => navigation.navigate('Panduan')} // Navigasi ke PHQ9
           >
-            <Icon name="emoticon-happy-outline" size={40} color="white" />
-            <Text style={styles.gridButtonText}>Stress</Text>
+            <Icon name="emoticon-happy-outline" size={40} color="#fff" />
+            <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Stress</Text>
+            <Text>Mengukur tingkat stress</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonLightTeal]}
-            onPress={() => navigation.navigate('FirstAid')} // Navigasi tetap ke FirstAid
+            onPress={() => navigation.navigate('FirstAid')} // Navigasi ke FirstAid
           >
             <Icon name="heart-pulse" size={40} color="#004D40" />
             <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Pertolongan Pertama</Text>
@@ -38,7 +35,7 @@ export default function DashboardScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonLightTeal]}
-            onPress={() => navigation.navigate('Lifestyle')} // Navigasi tetap ke Lifestyle
+            onPress={() => navigation.navigate('Lifestyle')} // Navigasi ke Lifestyle
           >
             <Icon name="dumbbell" size={40} color="#004D40" />
             <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Gaya Hidup</Text>
@@ -46,7 +43,7 @@ export default function DashboardScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonTeal]}
-            onPress={() => navigation.navigate('PSQI')} // Navigasi tetap ke PSQI
+            onPress={() => navigation.navigate('PSQI')} // Navigasi ke PSQI
           >
             <Icon name="bed-outline" size={40} color="white" />
             <Text style={styles.gridButtonText}>Kualitas Tidur</Text>
@@ -80,12 +77,7 @@ const styles = StyleSheet.create({
   logoIcon: {
     marginRight: 10,
   },
-  // logo: { // Jika menggunakan Image
-  //   width: 40,
-  //   height: 40,
-  //   resizeMode: 'contain',
-  //   marginRight: 10,
-  // },
+
   headerText: {
     fontSize: 32,
     fontWeight: 'bold',

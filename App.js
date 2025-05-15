@@ -9,6 +9,7 @@ import LifestyleScreen from './screens/LifestyleScreen';
 import FirstAidScreen from './screens/FirstAidScreen';
 import PHQ9ResultScreen from './screens/PHQ9ResultScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
+import panduanScreen from './screens/PanduanScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ export default function App() {
         <Stack.Navigator initialRouteName="Welcome">
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Panduan" component={panduanScreen} />
         <Stack.Screen name="PHQ9" component={PHQ9Screen} />
         <Stack.Screen name="PSQI" component={PSQIScreen} />
         <Stack.Screen name="Lifestyle" component={LifestyleScreen} />

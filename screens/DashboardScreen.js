@@ -18,7 +18,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.gridContainer}>
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonTeal]}
-            onPress={() => navigation.navigate('Panduan')} // Navigasi ke PHQ9
+            onPress={() => navigation.navigate('Panduan1')} // Navigasi ke PHQ9
           >
             <Icon name="emoticon-happy-outline" size={40} color="#fff" />
             <Text style={[styles.gridButtonText, styles.gridButtonText]}>mengukur tingkat Stress</Text>
@@ -34,7 +34,7 @@ export default function DashboardScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonLightTeal]}
-            onPress={() => navigation.navigate('Lifestyle')} // Navigasi ke Lifestyle
+            onPress={() => navigation.navigate('Panduan2')} // Navigasi ke Lifestyle
           >
             <Icon name="dumbbell" size={40} color="#004D40" />
             <Text style={[styles.gridButtonText, styles.gridButtonTextDark]}>Pengukur Gaya Hidup</Text>
@@ -42,7 +42,7 @@ export default function DashboardScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.gridButton, styles.gridButtonTeal]}
-            onPress={() => navigation.navigate('PSQI')} // Navigasi ke PSQI
+            onPress={() => navigation.navigate('Panduan3')} // Navigasi ke PSQI
           >
             <Icon name="bed-outline" size={40} color="white" />
             <Text style={styles.gridButtonText}>Pengukur Kualitas Tidur</Text>

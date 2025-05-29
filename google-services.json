@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "47221724322",
+    "project_id": "maseh1412",
+    "storage_bucket": "maseh1412.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:47221724322:android:d715b277b8ac4996aff3fb",
+        "android_client_info": {
+          "package_name": "com.Maseh.aplikasikesehatan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHQtCZhddcRVG3Wx_arL1DYOJ9l3rZYtw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

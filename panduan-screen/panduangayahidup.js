@@ -41,7 +41,7 @@ export default function PanduanScreen({ navigation }) {
 const styles = StyleSheet.create({
   overallContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF', r
+    backgroundColor: '#FFFFFF',
   },
   scrollContentContainer: {
     flexGrow: 1, // Memastikan konten bisa di-scroll jika lebih panjang dari layar

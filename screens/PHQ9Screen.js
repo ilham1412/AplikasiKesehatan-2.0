@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity,
-  StyleSheet, Alert, SafeAreaView, Platform
+  StyleSheet, Alert, SafeAreaView, Platform,
+  ScrollView // Tambahkan ScrollView
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native'; // Gunakan jika navigation tidak di-pass sebagai prop
 
 // Daftar pertanyaan PHQ-9 (tetap sama)
 const questions = [
@@ -19,7 +20,6 @@ const questions = [
 ];
 
 // Opsi jawaban baru dengan 5 pilihan (skor 0-4)
-// Sesuaikan teks jika perlu
 const phq9FiveOptions = [
   { text: "Tidak Pernah", value: 0 },
   { text: "Beberapa Hari", value: 1 },
@@ -28,33 +28,30 @@ const phq9FiveOptions = [
   { text: "Hampir Setiap Hari", value: 4 },
 ];
 
-// !!! PENTING: Fungsi ini HARUS disesuaikan dengan rentang skor baru (0-36) !!!
-// Kategori dan saran saat ini mungkin tidak akurat.
+// !!! PENTING: Fungsi ini HARUS disesuaikan dengan rentang skor baru (0-36) jika belum !!!
 const getCategoryAndAdvice = (score) => {
-  // Contoh penyesuaian (ANDA HARUS MEMVERIFIKASI DAN MENYESUAIKAN INI):
-  // Skor maksimal baru adalah 9 * 4 = 36
-  if (score <= 4) { // Misalnya, 0-4 tetap minimal
+  if (score <= 4) {
     return {
       category: 'Minimal atau Tidak Ada Gejala',
       advice: 'Tidak ditemukan gejala depresi yang signifikan. Tetap jaga gaya hidup sehat.',
     };
-  } else if (score <= 9) { // Misalnya, 5-9 tetap ringan
+  } else if (score <= 9) {
     return {
       category: 'Ringan',
       advice: 'Gejala depresi ringan terdeteksi. Pertimbangkan untuk memantau suasana hati Anda dan melakukan aktivitas yang menyenangkan.',
     };
-  } else if (score <= 14) { // Misalnya, 10-14 tetap sedang
+  } else if (score <= 14) {
     return {
       category: 'Sedang',
       advice: 'Gejala depresi sedang terdeteksi. Disarankan untuk berbicara dengan teman, keluarga, atau mempertimbangkan konsultasi dengan profesional.',
     };
-  } else if (score <= 19) { // Misalnya, 15-19 menjadi sedang-berat
+  } else if (score <= 19) {
      return {
       category: 'Sedang-Berat',
       advice: 'Gejala depresi sedang hingga berat. Sangat disarankan untuk mencari bantuan profesional kesehatan mental.',
     };
   }
-  else { // Misalnya, >19 menjadi berat
+  else {
     return {
       category: 'Berat',
       advice: 'Gejala depresi berat terdeteksi. Segera konsultasikan dengan profesional kesehatan mental untuk mendapatkan bantuan dan penanganan lebih lanjut.',
@@ -62,15 +59,18 @@ const getCategoryAndAdvice = (score) => {
   }
 };
 
-export default function PHQ9ScreenModified() {
+export default function PHQ9Screen({ navigation }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
-  const navigation = useNavigation();
 
   const handleSelectOption = (optionValue) => {
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = optionValue;
     setAnswers(newAnswers);
+  };
+
+  const calculateScore = () => {
+    return answers.reduce((acc, val) => acc + (val !== null ? val : 0), 0);
   };
 
   const handleNextQuestion = () => {
@@ -81,7 +81,6 @@ export default function PHQ9ScreenModified() {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Ini adalah pertanyaan terakhir, tombol "Berikutnya" akan berfungsi sebagai "Submit"
       handleSubmit();
     }
   };
@@ -92,30 +91,20 @@ export default function PHQ9ScreenModified() {
     }
   };
 
-  const calculateScore = () => {
-    return answers.reduce((acc, val) => acc + (val !== null ? val : 0), 0);
-  };
-
   const handleSubmit = () => {
-    // Periksa apakah semua pertanyaan telah dijawab (meskipun handleNextQuestion sudah memeriksa per langkah)
-    const allAnswered = answers.every(answer => answer !== null);
-    if (!allAnswered && answers[currentQuestionIndex] === null) { // Cek juga pertanyaan saat ini jika itu yg terakhir
-        Alert.alert("Peringatan", "Harap jawab semua pertanyaan sebelum submit.");
-        return;
-    }
-     if (answers[currentQuestionIndex] === null) { // Pastikan pertanyaan terakhir dijawab
+    if (answers[currentQuestionIndex] === null) {
       Alert.alert("Pilihan Dibutuhkan", "Silakan pilih salah satu opsi untuk pertanyaan terakhir.");
       return;
     }
 
-
     const score = calculateScore();
     const { category, advice } = getCategoryAndAdvice(score);
 
-    navigation.navigate('PHQ9Result', { // Pastikan Anda memiliki screen bernama 'PHQ9Result'
+    navigation.navigate('PHQ9Result', {
       score,
       category,
       advice,
+      answers: answers,
     });
   };
 
@@ -123,7 +112,12 @@ export default function PHQ9ScreenModified() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      {/* Ganti View utama dengan ScrollView */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContentContainer}
+        keyboardShouldPersistTaps="handled" // Baik untuk interaksi di dalam ScrollView
+      >
         {/* Progress Bar */}
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
@@ -154,6 +148,12 @@ export default function PHQ9ScreenModified() {
           ))}
         </View>
 
+        {/* Bagian ini sengaja dibuat agar ada ruang yang cukup untuk tombol navigasi di bawah
+            jika kontennya lebih pendek dari layar.
+            Jika kontennya panjang dan bisa di-scroll, ini akan mendorong tombol ke bawah.
+        */}
+        <View style={styles.spacer} /> 
+
         {/* Navigation Buttons */}
         <View style={styles.navigationButtonsContainer}>
           {currentQuestionIndex > 0 && (
@@ -161,13 +161,15 @@ export default function PHQ9ScreenModified() {
               <Text style={[styles.navButtonText, styles.prevButtonText]}>Kembali</Text>
             </TouchableOpacity>
           )}
+          {/* Placeholder untuk menjaga layout jika tombol kembali tidak ada */}
+          {currentQuestionIndex === 0 && <View style={styles.buttonPlaceholder} />} 
           <TouchableOpacity style={[styles.navButton, styles.nextButton]} onPress={handleNextQuestion}>
             <Text style={[styles.navButtonText, styles.nextButtonText]}>
-              {currentQuestionIndex === questions.length - 1 ? 'Submit' : 'Berikutnya'}
+              {currentQuestionIndex === questions.length - 1 ? 'Lihat Hasil' : 'Berikutnya'}
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -175,18 +177,23 @@ export default function PHQ9ScreenModified() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F0F4F8', // Latar belakang keseluruhan yang sangat terang
+    backgroundColor: '#F0F4F8',
   },
-  container: {
-    flex: 1,
+  // Style untuk ScrollView itu sendiri
+  scrollView: {
+    flex: 1, // ScrollView mengambil sisa ruang di SafeAreaView
+  },
+  // Style untuk konten di dalam ScrollView
+  scrollContentContainer: {
+    flexGrow: 1, // Penting agar justifyContent bekerja jika konten lebih pendek dari layar
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 20 : 0, // Padding atas untuk Android
-    justifyContent: 'space-between', // Mendorong tombol navigasi ke bawah
-    paddingBottom: 20,
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
+    paddingBottom: 20, // Padding bawah untuk konten
+    justifyContent: 'flex-start', // Mulai konten dari atas
   },
   progressBarContainer: {
     height: 10,
-    backgroundColor: '#E0E0E0', // Warna track progress bar
+    backgroundColor: '#E0E0E0',
     borderRadius: 5,
     overflow: 'hidden',
     marginTop: 20,
@@ -194,11 +201,11 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#4DB6AC', // Warna isi progress bar (teal)
+    backgroundColor: '#4DB6AC',
     borderRadius: 5,
   },
   questionContainer: {
-    backgroundColor: 'white', // Latar belakang area pertanyaan
+    backgroundColor: 'white',
     borderRadius: 15,
     padding: 20,
     marginBottom: 30,
@@ -213,12 +220,12 @@ const styles = StyleSheet.create({
   },
   questionHeader: {
     fontSize: 16,
-    color: '#757575', // Warna abu-abu untuk "Pertanyaan X:"
+    color: '#757575',
     marginBottom: 8,
   },
   questionText: {
     fontSize: 18,
-    color: '#333', // Warna teks pertanyaan utama
+    color: '#333',
     lineHeight: 26,
     fontWeight: '500',
   },
@@ -227,6 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 10,
     paddingVertical:15,
+    marginBottom: 20, // Beri jarak sebelum spacer/tombol
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -241,45 +249,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 10,
-    // borderBottomWidth: 1, // Garis pemisah antar opsi jika diinginkan
-    // borderBottomColor: '#EEEEEE',
   },
   radioCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#BDBDBD', // Warna border radio button tidak terpilih
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 15,
+    borderColor: '#BDBDBD',
+    alignItems: 'center', // Ditambahkan untuk memastikan innerCircle di tengah
+    justifyContent: 'center', // Ditambahkan untuk memastikan innerCircle di tengah
   },
   radioCircleSelected: {
-    borderColor: '#4DB6AC', // Warna border radio button terpilih (teal)
+    borderColor: '#4DB6AC',
   },
   radioInnerCircle: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4DB6AC', // Warna isi radio button terpilih (teal)
+    backgroundColor: '#4DB6AC',
   },
   optionText: {
     fontSize: 17,
     color: '#424242',
+    marginLeft: 15, // Sesuaikan jarak dari radio button
+  },
+  // Spacer untuk mendorong tombol ke bawah jika konten pendek
+  spacer: {
+    flex: 1, // Mengambil sisa ruang vertikal yang tersedia
   },
   navigationButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Tombol "Kembali" di kiri, "Berikutnya" di kanan
-    marginTop: 30,
-    paddingHorizontal: 10, // Padding agar tombol tidak terlalu mepet tepi
+    justifyContent: 'space-between',
+    marginTop: 20, // Jarak dari konten di atasnya atau spacer
+    paddingHorizontal: 10, // Padding horizontal yang sudah ada
+  },
+  buttonPlaceholder: { // Untuk menggantikan tombol 'Kembali' agar layout 'space-between' tetap bekerja
+    minWidth: 120, // Sesuaikan dengan minWidth tombol navButton
+    // backgroundColor: 'transparent', // Tidak terlihat
   },
   navButton: {
     paddingVertical: 12,
     paddingHorizontal: 25,
-    borderRadius: 25, // Membuat tombol lebih rounded
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 120, // Lebar minimum tombol
+    minWidth: 120,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -290,15 +304,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   prevButton: {
-    backgroundColor: '#E0E0E0', // Warna tombol kembali
+    backgroundColor: '#E0E0E0',
   },
   prevButtonText: {
-    color: '#757575', // Warna teks tombol kembali
+    color: '#757575',
     fontSize: 16,
     fontWeight: 'bold',
   },
   nextButton: {
-    backgroundColor: '#4DB6AC', // Warna tombol berikutnya/submit (teal)
+    backgroundColor: '#4DB6AC',
   },
   nextButtonText: {
     color: 'white',
@@ -306,4 +320,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-

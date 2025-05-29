@@ -51,7 +51,7 @@ export default function DashboardScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.historyButton}
-          onPress={() => navigation.navigate('History')} // Ganti 'History' dengan nama screen riwayat Anda
+          onPress={() => navigation.navigate('Riwayat')} // Ganti 'History' dengan nama screen riwayat Anda
         >
           <Text style={styles.historyButtonText}>Cek riwayat pengisian</Text>
         </TouchableOpacity>

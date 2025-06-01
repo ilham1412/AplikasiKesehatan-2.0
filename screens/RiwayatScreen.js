@@ -13,6 +13,47 @@ const formatDate = (isoString) => {
   return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+
+const formatTimestampToLocal = (isoString) => {
+  //console.log('[RiwayatScreen] Original isoString received:', isoString); // <--- LOG 1: Lihat string asli
+
+  if (!isoString) return 'Timestamp tidak valid';
+  let correctedIsoString = isoString;
+  if (typeof isoString === 'string' && isoString.includes(' ') && !isoString.includes('T') && !isoString.endsWith('Z') && !isoString.match(/[+-]\d{2}:\d{2}/)) {
+    // Ini adalah upaya untuk mendeteksi format "YYYY-MM-DD HH:MM:SS"
+    // dan mengubahnya menjadi format yang akan diinterpretasikan sebagai UTC oleh new Date()
+    //console.log('[RiwayatScreen] Detected space-separated timestamp, attempting to mark as UTC by appending Z.');
+    correctedIsoString = isoString.replace(' ', 'T') + 'Z';
+     //console.log('[RiwayatScreen] Corrected isoString:', correctedIsoString);
+  }
+
+
+  const date = new Date(correctedIsoString); // Gunakan string yang mungkin sudah dikoreksi
+
+  //console.log('[RiwayatScreen] Parsed Date object (toString):', date.toString());
+  //console.log('[RiwayatScreen] Parsed Date object (toISOString):', date.toISOString());
+
+  if (isNaN(date.getTime())) {
+    console.error('[RiwayatScreen] Date parsing resulted in NaN for:', isoString, '(corrected to:', correctedIsoString, ')');
+    return 'Format timestamp salah';
+  }
+
+  const options = {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  };
+
+  const formatted = date.toLocaleString('id-ID', options);
+  //console.log('[RiwayatScreen] Formatted timestamp by toLocaleString:', formatted);
+  return formatted;
+};
+
+
+
 // Mapping untuk ikon dan judul berdasarkan tipe asesmen (tetap sama)
 const assessmentInfo = {
   PHQ9: {
@@ -79,7 +120,7 @@ const RiwayatItem = ({ item, onPress }) => {
           <Text style={[styles.itemCategory, { color: indicator.color }]}>{indicator.text}</Text>
         </View>
       </View>
-      <Text style={styles.itemDate}>{formatDate(item.timestamp)}</Text>
+      <Text style={styles.itemDate}>{formatTimestampToLocal(item.timestamp)}</Text>
     </TouchableOpacity>
   );
 };

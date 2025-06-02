@@ -1,148 +1,153 @@
 // src/screens/RiwayatScreen.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { 
+    View, Text, SectionList, TouchableOpacity, 
+    StyleSheet, ActivityIndicator, Image, SafeAreaView, Platform, StatusBar 
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-// Hanya import getAllAssessmentResults (getDBConnection akan dipanggil di dalamnya)
 import { getAllAssessmentResults } from '../database/database'; // Sesuaikan path
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Fungsi untuk memformat tanggal (tetap sama)
-const formatDate = (isoString) => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-
-const formatTimestampToLocal = (isoString) => {
-  //console.log('[RiwayatScreen] Original isoString received:', isoString); // <--- LOG 1: Lihat string asli
-
-  if (!isoString) return 'Timestamp tidak valid';
+// Fungsi untuk memformat timestamp menjadi objek yang bisa diolah
+const parseTimestamp = (isoString) => {
+  if (!isoString) return null;
   let correctedIsoString = isoString;
   if (typeof isoString === 'string' && isoString.includes(' ') && !isoString.includes('T') && !isoString.endsWith('Z') && !isoString.match(/[+-]\d{2}:\d{2}/)) {
-    // Ini adalah upaya untuk mendeteksi format "YYYY-MM-DD HH:MM:SS"
-    // dan mengubahnya menjadi format yang akan diinterpretasikan sebagai UTC oleh new Date()
-    //console.log('[RiwayatScreen] Detected space-separated timestamp, attempting to mark as UTC by appending Z.');
     correctedIsoString = isoString.replace(' ', 'T') + 'Z';
-     //console.log('[RiwayatScreen] Corrected isoString:', correctedIsoString);
   }
+  const date = new Date(correctedIsoString);
+  return isNaN(date.getTime()) ? null : date;
+};
 
+// Fungsi untuk mendapatkan label grup tanggal (Today, Yesterday, dll.)
+const getDateGroupLabel = (date) => {
+  if (!date) return 'Tanggal Tidak Valid';
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
-  const date = new Date(correctedIsoString); // Gunakan string yang mungkin sudah dikoreksi
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString('id-ID', { weekday: 'long', /*day: '2-digit', month: 'short'*/ }); // Wednesday, Thursday, etc.
+};
 
-  //console.log('[RiwayatScreen] Parsed Date object (toString):', date.toString());
-  //console.log('[RiwayatScreen] Parsed Date object (toISOString):', date.toISOString());
-
-  if (isNaN(date.getTime())) {
-    console.error('[RiwayatScreen] Date parsing resulted in NaN for:', isoString, '(corrected to:', correctedIsoString, ')');
-    return 'Format timestamp salah';
-  }
-
-  const options = {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  };
-
-  const formatted = date.toLocaleString('id-ID', options);
-  //console.log('[RiwayatScreen] Formatted timestamp by toLocaleString:', formatted);
-  return formatted;
+// Fungsi untuk memformat waktu (misal: 11:00 PM)
+const formatTime = (date) => {
+  if (!date) return '';
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(/^0/, ''); // Hapus 0 di depan jika ada
 };
 
 
-
-// Mapping untuk ikon dan judul berdasarkan tipe asesmen (tetap sama)
+// Mapping untuk ikon dan judul berdasarkan tipe asesmen (tetap sama atau sesuaikan ikon)
 const assessmentInfo = {
   PHQ9: {
-    title: 'Tingkat Stres',
-    icon: require('../assets/images/MASEH IJO.png'), // Ganti dengan path ikon Anda yang sesuai
+    title: 'Tingkat Depresi', // Di gambar "Tingkat Stres" diubah jadi "Tingkat Depresi"
+    icon: require('../assets/images/MASEH PUTIH.png'), // GANTI DENGAN IKON BARU
     getIndicator: (category) => {
       switch (category.toLowerCase()) {
-        case 'parah': return { text: 'Parah', color: '#E53935', icon: 'arrow-down-bold-hexagon-outline', type: 'bar' };
-        case 'berat': return { text: 'Berat', color: '#E53935', icon: 'arrow-down-bold-hexagon-outline', type: 'bar' };
-        case 'sedang': return { text: 'Sedang', color: '#FFB300', icon: 'minus-box-outline', type: 'bar' };
-        case 'ringan': return { text: 'Ringan', color: '#7CB342', icon: 'arrow-up-bold-hexagon-outline', type: 'bar' };
-        case 'minimal': return { text: 'Minimal', color: '#43A047', icon: 'thumb-up-outline', type: 'thumb' };
-        case 'minimal atau tidak ada gejala': return { text: 'Minimal', color: '#43A047', icon: 'thumb-up-outline', type: 'thumb' }; // Tambahkan ini jika kategori dari PHQ9 seperti ini
-        case 'tidak ada': return { text: 'Tidak ada', color: '#BDBDBD', icon: 'minus', type: 'bar' };
-        default: return { text: category, color: '#757575', icon: 'help-circle-outline', type: 'text' };
+        case 'parah': return { text: 'Parah', color: '#E53935' };
+        case 'berat': return { text: 'Berat', color: '#E53935' };
+        case 'cukup parah': return { text: 'Cukup parah', color: '#EF5350'}; // Contoh
+        case 'sedang-berat': return { text: 'Sedang-Berat', color: '#EF5350'}; // Contoh
+        case 'sedang': return { text: 'Sedang', color: '#FFB300' };
+        case 'ringan': return { text: 'Ringan', color: '#7CB342' };
+        case 'minimal': return { text: 'Minimal', color: '#4CAF50' };
+        case 'minimal atau tidak ada gejala': return { text: 'Minimal', color: '#4CAF50' };
+        case 'tidak ada': return { text: 'Tidak ada', color: '#BDBDBD' };
+        default: return { text: category, color: '#757575' };
       }
     }
   },
   SleepQuality: {
     title: 'Kualitas Tidur',
-    icon: require('../assets/images/MASEH IJO.png'), // Ganti dengan path ikon Anda yang sesuai
+    icon: require('../assets/images/MASEH PUTIH.png'), // GANTI DENGAN IKON BARU
      getIndicator: (category) => {
       switch (category.toLowerCase()) {
-        case 'sangat buruk': return { text: 'Sangat Buruk', color: '#D32F2F', icon: 'thumb-down-outline', type: 'thumb' };
-        case 'buruk': return { text: 'Buruk', color: '#E53935', icon: 'thumb-down-outline', type: 'thumb' };
-        case 'sedang': return { text: 'Sedang', color: '#FFB300', icon: 'minus-box-outline', type: 'bar' };
-        case 'baik': return { text: 'Baik', color: '#43A047', icon: 'thumb-up-outline', type: 'thumb' };
-        case 'sangat baik': return { text: 'Sangat Baik', color: '#2E7D32', icon: 'thumb-up-outline', type: 'thumb' };
-        default: return { text: category, color: '#757575', icon: 'help-circle-outline', type: 'text' };
+        case 'sangat buruk': return { text: 'Sangat Buruk', color: '#D32F2F'};
+        case 'buruk': return { text: 'Buruk', color: '#E53935'};
+        case 'sedang': return { text: 'Sedang', color: '#FFB300'};
+        case 'baik': return { text: 'Baik', color: '#4CAF50'};
+        case 'sangat baik': return { text: 'Sangat Baik', color: '#2E7D32'};
+        default: return { text: category, color: '#757575' };
       }
     }
   },
   Lifestyle: {
     title: 'Gaya Hidup',
-    icon: require('../assets/images/MASEH IJO.png'), // Ganti dengan path ikon Anda yang sesuai
+    icon: require('../assets/images/MASEH PUTIH.png'), // GANTI DENGAN IKON BARU
     getIndicator: (category) => {
       switch (category.toLowerCase()) {
-        case 'buruk': return { text: 'Buruk', color: '#E53935', icon: 'arrow-down-bold-hexagon-outline', type: 'bar' };
-        case 'kurang': return { text: 'Kurang', color: '#FFB300', icon: 'minus-box-outline', type: 'bar' };
-        case 'cukup': return { text: 'Cukup', color: '#FFEE58', icon: 'minus-box-outline', type: 'bar' };
-        case 'baik': return { text: 'Baik', color: '#7CB342', icon: 'arrow-up-bold-hexagon-outline', type: 'bar' };
-        case 'sangat baik': return { text: 'Sangat Baik', color: '#43A047', icon: 'thumb-up-outline', type: 'thumb' };
-        default: return { text: category, color: '#757575', icon: 'help-circle-outline', type: 'text' };
+        case 'buruk': return { text: 'Buruk', color: '#E53935' };
+        case 'kurang': return { text: 'Kurang', color: '#FFB300' };
+        case 'cukup': return { text: 'Cukup', color: '#FFEE58'};
+        case 'baik': return { text: 'Baik', color: '#7CB342' };
+        case 'sangat baik': return { text: 'Sangat Baik', color: '#4CAF50'};
+        default: return { text: category, color: '#757575' };
       }
     }
   }
 };
 
-// Komponen RiwayatItem (tetap sama)
 const RiwayatItem = ({ item, onPress }) => {
-  const info = assessmentInfo[item.assessment_type] || { title: item.assessment_type, icon: require('../assets/images/MASEH IJO.png'), getIndicator: () => ({ text: item.category, color: '#757575', icon: 'help-circle-outline' }) };
-  // Pastikan getIndicator dipanggil dengan benar
-  const categoryForIndicator = item.category || ""; // Default ke string kosong jika undefined/null
+  const info = assessmentInfo[item.assessment_type] || { 
+    title: item.assessment_type, 
+    icon: require('../assets/images/MASEH PUTIH.png'), // Ikon default
+    getIndicator: () => ({ text: item.category, color: '#757575' }) 
+  };
+  const categoryForIndicator = item.category || "";
   const indicator = info.getIndicator(categoryForIndicator);
-
+  const itemDateObject = parseTimestamp(item.timestamp);
 
   return (
     <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
       <Image source={info.icon} style={styles.itemIconImage} />
       <View style={styles.itemTextContainer}>
         <Text style={styles.itemTitle}>{info.title}</Text>
-        <View style={styles.indicatorContainer}>
-          <Icon name={indicator.icon} size={18} color={indicator.color} style={styles.indicatorIcon} />
-          <Text style={[styles.itemCategory, { color: indicator.color }]}>{indicator.text}</Text>
-        </View>
+        <Text style={[styles.itemCategory, { color: indicator.color }]}>{indicator.text}</Text>
       </View>
-      <Text style={styles.itemDate}>{formatTimestampToLocal(item.timestamp)}</Text>
+      <Text style={styles.itemTime}>{itemDateObject ? formatTime(itemDateObject) : ''}</Text>
     </TouchableOpacity>
   );
 };
 
+// Fungsi untuk mengelompokkan data riwayat berdasarkan tanggal
+const groupHistoryByDate = (historyData) => {
+  if (!historyData || historyData.length === 0) return [];
+
+  const grouped = historyData.reduce((acc, item) => {
+    const dateObject = parseTimestamp(item.timestamp);
+    if (!dateObject) return acc; // Lewati item dengan timestamp tidak valid
+
+    const groupLabel = getDateGroupLabel(dateObject);
+    
+    const group = acc.find(g => g.title === groupLabel);
+    if (group) {
+      group.data.push(item);
+    } else {
+      acc.push({ title: groupLabel, data: [item] });
+    }
+    return acc;
+  }, []);
+
+  // Urutkan grup (Today, Yesterday, lalu tanggal lain dari terbaru ke terlama)
+  // Ini bisa lebih kompleks, untuk sekarang kita biarkan urutan dari database (DESC)
+  return grouped;
+};
+
 
 export default function RiwayatScreen({ navigation }) {
-  const [history, setHistory] = useState([]);
+  const [groupedHistory, setGroupedHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadHistory = useCallback(async () => {
     setIsLoading(true);
     try {
-      // --- PERUBAHAN DI SINI ---
-      // Tidak perlu: const db = await getDBConnection();
-      
-      // Langsung panggil tanpa argumen 'db'
       const results = await getAllAssessmentResults();
-      // --------------------------
-      setHistory(results);
+      const groupedData = groupHistoryByDate(results);
+      setGroupedHistory(groupedData);
     } catch (error) {
       console.error("Failed to load history:", error);
-      setHistory([]); // Set ke array kosong jika ada error
+      setGroupedHistory([]);
     } finally {
       setIsLoading(false);
     }
@@ -155,83 +160,101 @@ export default function RiwayatScreen({ navigation }) {
   );
 
   if (isLoading) {
-    return <View style={styles.centered}><ActivityIndicator size="large" color="#00796B" /></View>;
-  }
-
-  if (history.length === 0) {
     return (
-        <View style={styles.screenContainer}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                <Icon name="arrow-left" size={24} color="#333" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Riwayat</Text>
-                {/* Placeholder untuk menyeimbangkan judul jika tidak ada tombol kanan */}
-                <View style={{width: 24 + styles.headerLink.fontSize}} /> 
-            </View>
-            <View style={styles.centered}>
-                <Text style={styles.emptyText}>Belum ada riwayat tersimpan.</Text>
-            </View>
-       </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerOnlyTitle}>
+          <Text style={styles.headerTitleMain}>Riwayat</Text>
+        </View>
+        <View style={styles.centered}><ActivityIndicator size="large" color="#00796B" /></View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.screenContainer}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color="#333" />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.headerOnlyTitle}>
+        <Text style={styles.headerTitleMain}>Riwayat</Text>
+      </View>
+
+      {groupedHistory.length === 0 && !isLoading ? (
+        <View style={styles.centeredFlex}>
+            <Text style={styles.emptyText}>Belum ada riwayat tersimpan.</Text>
+        </View>
+      ) : (
+        <SectionList
+          sections={groupedHistory}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <RiwayatItem
+              item={item}
+              onPress={() => navigation.navigate('RiwayatDetail', { assessmentId: item.id })}
+            />
+          )}
+          renderSectionHeader={({ section: { title } }) => (
+            <View style={styles.sectionHeaderContainer}>
+              <Text style={styles.sectionHeaderText}>{title}</Text>
+            </View>
+          )}
+          contentContainerStyle={styles.listContentContainer}
+          stickySectionHeadersEnabled={false} 
+        />
+      )}
+      
+      {/* Footer Navigasi Statis */}
+      <View style={styles.footerNav}>
+        <TouchableOpacity style={styles.footerNavItem} onPress={() => navigation.navigate("Dashboard")}>
+          <Icon name="view-dashboard-outline" size={28} color="#757575" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Riwayat</Text>
-        <TouchableOpacity onPress={loadHistory}>
-          <Text style={styles.headerLink}>Semua Riwayat</Text>
+        <TouchableOpacity style={styles.footerNavItem} onPress={() => console.log("Navigasi ke Riwayat (sudah di sini)")}>
+          <Icon name="history" size={28} color="#00695C" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerNavItem} onPress={() => navigation.navigate('Settings')}>
+          <Icon name="cog-outline" size={28} color="#757575" />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={history}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <RiwayatItem
-            item={item}
-            onPress={() => navigation.navigate('RiwayatDetail', { assessmentId: item.id })}
-          />
-        )}
-        contentContainerStyle={styles.listContentContainer}
-      />
-    </View>
+    </SafeAreaView>
   );
 }
 
-// Styles (tetap sama persis seperti yang Anda kirim sebelumnya)
 const styles = StyleSheet.create({
-  screenContainer: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F4F6F8',
+    backgroundColor: '#F4F6F8', 
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+  headerOnlyTitle: { // Style untuk header yang hanya berisi judul "Riwayat"
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    alignItems: 'flex-start', // Judul rata kiri seperti di gambar
+    backgroundColor: '#F4F6F8', // Atau samakan dengan screenContainer
+    // borderBottomWidth: 1, // Opsional jika ingin garis bawah
+    // borderBottomColor: '#E0E0E0',
   },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 20,
+  headerTitleMain: {
+    fontSize: 24, // Ukuran font lebih besar
     fontWeight: 'bold',
-    color: '#333',
-  },
-  headerLink: {
-    fontSize: 14,
-    color: '#007AFF',
+    color: '#00695C', // Warna hijau Maseh
   },
   listContentContainer: {
-    padding: 10,
+    paddingHorizontal: 15, // Padding untuk SectionList
+    paddingBottom: 10, // Padding di bawah item terakhir
+  },
+  sectionHeaderContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 5, // Sedikit padding untuk teks grup
+    marginTop: 10, // Jarak antar grup
+    marginBottom: 5,
+    alignItems: 'center', // Pusatkan teks grup "Today", "Yesterday"
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#757575',
+    backgroundColor: '#E0E0E0', // Latar belakang abu-abu untuk label grup
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    overflow: 'hidden', // Agar borderRadius bekerja
   },
   itemContainer: {
     flexDirection: 'row',
@@ -239,52 +262,69 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: 15,
     borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 10, // Jarak antar item
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   itemIconImage: {
-    width: 40,
-    height: 40,
+    width: 36, // Ukuran ikon disesuaikan
+    height: 36,
     marginRight: 15,
-    resizeMode: 'contain',
+    // backgroundColor: '#f0f0f0', // Placeholder jika ikon tidak ada
+    // borderRadius: 18,
   },
   itemTextContainer: {
     flex: 1,
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  indicatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  itemCategory: { // Teks kategori (Parah, Buruk, dll.)
+    fontSize: 13,
+    fontWeight: 'bold', // Dibuat bold seperti di gambar
   },
-  indicatorIcon: {
-    marginRight: 5,
-  },
-  itemCategory: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  itemDate: {
-    fontSize: 12,
+  itemTime: { // Hanya menampilkan waktu
+    fontSize: 13,
     color: '#757575',
   },
-  centered: {
+  centered: { // Untuk loading
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
+  centeredFlex: { // Untuk teks "Belum ada riwayat" agar mengambil sisa ruang
+    flex:1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   emptyText: {
     fontSize: 16,
     color: '#757575',
     textAlign: 'center',
-  }
+  },
+  // Style untuk footerNav (sama seperti di SettingsScreen.js atau DashboardScreen.js)
+  footerNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingVertical: Platform.OS === 'ios' ? 10 : 10,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+    height: Platform.OS === 'ios' ? 80 : 60,
+  },
+  footerNavItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+  },
 });

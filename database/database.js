@@ -2,12 +2,12 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'MasehApp.db';
-let
- 
-dbInstance = null; // Kita akan simpan instance DB di sini setelah berhasil dibuka
+const TABLE_ASSESSMENTS = 'assessments';
+const TABLE_APP_SETTINGS = 'app_settings'; // Nama tabel baru untuk pengaturan
 
-// Fungsi ini HANYA untuk membuka atau mendapatkan koneksi yang sudah ada.
-// Inisialisasi tabel dilakukan terpisah.
+let dbInstance = null;
+
+// Fungsi untuk membuka atau mendapatkan koneksi yang sudah ada.
 export const openDB = async () => {
   if (dbInstance) {
     console.log('[DB_LOG] Returning existing dbInstance.');
@@ -15,10 +15,9 @@ export const openDB = async () => {
   }
   try {
     console.log('[DB_LOG] Attempting to open database with SQLite.openDatabaseAsync...');
-    // Untuk expo-sqlite versi baru (SDK 50+), openDatabaseAsync mengembalikan objek database secara langsung
     dbInstance = await SQLite.openDatabaseAsync(DATABASE_NAME);
     console.log('[DB_LOG] SQLite.openDatabaseAsync successful. DB Object Keys:', Object.keys(dbInstance));
-    console.log('[DB_LOG] dbInstance path:', dbInstance.databasePath); // Cek path
+    console.log('[DB_LOG] dbInstance path:', dbInstance.databasePath);
     return dbInstance;
   } catch (error) {
     console.error('[DB_LOG] Error opening database with SQLite.openDatabaseAsync:', error);
@@ -27,7 +26,7 @@ export const openDB = async () => {
 };
 
 // Fungsi untuk membuat tabel. Dipanggil setelah database berhasil dibuka.
-export const createTables = async (db) => { // `db` adalah instance yang sudah dibuka
+export const createTables = async (db) => {
   if (!db) {
     console.error('[DB_LOG] createTables: db object is null or undefined.');
     throw new Error('Database not opened before creating tables.');
@@ -37,10 +36,11 @@ export const createTables = async (db) => { // `db` adalah instance yang sudah d
     throw new Error('db.execAsync is not a function. Cannot create tables.');
   }
 
-  console.log('[DB_LOG] Attempting to create table using db.execAsync...');
+  console.log('[DB_LOG] Attempting to create tables using db.execAsync...');
   try {
+    // Membuat tabel assessments
     await db.execAsync(
-      `CREATE TABLE IF NOT EXISTS assessments (
+      `CREATE TABLE IF NOT EXISTS ${TABLE_ASSESSMENTS} (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           assessment_type TEXT NOT NULL,
           score INTEGER,
@@ -50,9 +50,19 @@ export const createTables = async (db) => { // `db` adalah instance yang sudah d
           timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
       );`
     );
-    console.log('[DB_LOG] Table assessments SQL executed via db.execAsync.');
+    console.log(`[DB_LOG] Table ${TABLE_ASSESSMENTS} SQL executed via db.execAsync.`);
+
+    // Membuat tabel app_settings
+    await db.execAsync(
+      `CREATE TABLE IF NOT EXISTS ${TABLE_APP_SETTINGS} (
+          key TEXT PRIMARY KEY NOT NULL,
+          value TEXT
+      );`
+    );
+    console.log(`[DB_LOG] Table ${TABLE_APP_SETTINGS} SQL executed via db.execAsync.`);
+
   } catch (error) {
-    console.error('[DB_LOG] Error executing CREATE TABLE with db.execAsync:', error);
+    console.error('[DB_LOG] Error executing CREATE TABLE statements with db.execAsync:', error);
     throw error;
   }
 };
@@ -60,34 +70,67 @@ export const createTables = async (db) => { // `db` adalah instance yang sudah d
 // Fungsi utama untuk inisialisasi, dipanggil sekali dari App.js
 export const initDatabase = async () => {
   try {
-    const db = await openDB(); // Buka atau dapatkan koneksi
-    await createTables(db);    // Buat tabel menggunakan koneksi tsb
+    const db = await openDB();
+    await createTables(db);
     console.log('[DB_LOG] Database fully initialized (opened and tables checked/created).');
   } catch (error) {
     console.error('[DB_LOG] Critical error during initDatabase:', error);
-    throw error; // Lempar error agar App.js bisa menangani
+    throw error;
   }
 };
 
 // Fungsi untuk mendapatkan koneksi DB yang sudah diinisialisasi untuk operasi CRUD
-// Ini akan dipanggil oleh screen Anda sebelum melakukan operasi add, get, dll.
 export const getDBConnection = async () => {
   if (!dbInstance) {
-    // Ini seharusnya tidak terjadi jika initDatabase() sudah dipanggil dari App.js dengan benar.
-    // Namun, sebagai fallback, kita coba inisialisasi.
     console.warn('[DB_LOG] getDBConnection: dbInstance is null, attempting to re-initialize. This might indicate an issue in App.js initialization flow.');
-    await initDatabase(); // initDatabase akan mengisi dbInstance
-    if (!dbInstance) { // Jika masih null setelah re-inisialisasi
+    await initDatabase();
+    if (!dbInstance) {
         throw new Error("Failed to get DB connection even after re-initialization attempt.");
     }
   }
   return dbInstance;
 };
 
+// --- Fungsi untuk Pengaturan Aplikasi ---
+export const setAppSetting = async (key, value) => {
+  const db = await getDBConnection();
+  if (!db || typeof db.runAsync !== 'function') {
+    console.error("[DB_LOG] setAppSetting: Invalid DB object or db.runAsync not a function. DB Keys:", Object.keys(db || {}));
+    throw new Error("Invalid DB object or .runAsync not available in setAppSetting");
+  }
+  const query = `INSERT OR REPLACE INTO ${TABLE_APP_SETTINGS} (key, value) VALUES (?, ?);`;
+  console.log(`[DB_LOG] Attempting to save setting: {${key}: ${value}}`);
+  try {
+    await db.runAsync(query, [key, String(value)]); // Pastikan value disimpan sebagai string jika perlu
+    console.log(`[DB_LOG] Setting saved successfully: {${key}: ${value}}`);
+  } catch (error) {
+    console.error(`[DB_LOG] Error saving setting {${key}: ${value}}:`, error);
+    throw error;
+  }
+};
 
-// Fungsi CRUD sekarang akan memanggil getDBConnection untuk mendapatkan instance `db`
+export const getAppSetting = async (key) => {
+  const db = await getDBConnection();
+  if (!db || typeof db.getFirstAsync !== 'function') {
+    console.error("[DB_LOG] getAppSetting: Invalid DB object or db.getFirstAsync not a function. DB Keys:", Object.keys(db || {}));
+    throw new Error("Invalid DB object or .getFirstAsync not available in getAppSetting");
+  }
+  const query = `SELECT value FROM ${TABLE_APP_SETTINGS} WHERE key = ?;`;
+  console.log(`[DB_LOG] Attempting to fetch setting: ${key}`);
+  try {
+    const result = await db.getFirstAsync(query, [key]);
+    console.log(`[DB_LOG] Fetched setting ${key}:`, result);
+    return result ? result.value : null; // getFirstAsync mengembalikan objek baris atau undefined/null
+  } catch (error) {
+    console.error(`[DB_LOG] Error fetching setting ${key}:`, error);
+    throw error;
+  }
+};
+
+
+// --- Fungsi CRUD untuk assessments (tetap sama) ---
 export const addAssessmentResult = async (type, score, category, advice, details = null) => {
-  const db = await getDBConnection(); // Dapatkan instance DB yang valid
+  const db = await getDBConnection();
   if (!db || typeof db.runAsync !== 'function') {
     console.error("[DB_LOG] addAssessmentResult: Invalid DB object or db.runAsync not a function. DB Keys:", Object.keys(db || {}));
     throw new Error("Invalid DB object or .runAsync not available in addAssessmentResult");

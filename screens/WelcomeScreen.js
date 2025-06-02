@@ -13,7 +13,7 @@ export default function WelcomeScreen({ navigation }) {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.replace('Dashboard')} // Navigasi tetap sama
+        onPress={() => navigation.replace('NamaPengguna')} // Navigasi tetap sama
       >
         <Text style={styles.buttonText}>Mulai</Text>
       </TouchableOpacity>

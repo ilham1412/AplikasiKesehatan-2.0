@@ -171,20 +171,24 @@ const styles = StyleSheet.create({
   },
   // Style untuk footerNav (seperti di DashboardScreen.js)
   footerNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingVertical: Platform.OS === 'ios' ? 10 : 10, // Disesuaikan agar konsisten
-    paddingBottom: Platform.OS === 'ios' ? 30 : 10, // Padding bawah khusus iOS untuk home indicator
-    height: Platform.OS === 'ios' ? 80 : 60, // Sesuaikan tinggi jika perlu
-  },
-  footerNavItem: {
-    flex: 1, // Agar setiap item mengambil ruang yang sama
-    alignItems: 'center',
-    justifyContent: 'center', // Pusatkan ikon
-    paddingVertical: 5, // Area sentuh yang cukup
-  },
+  flexDirection: 'row',
+  justifyContent: 'space-around', // Agar ikon tersebar rata
+  alignItems: 'center',          // Agar ikon terpusat secara vertikal di dalam tinggi footer
+  backgroundColor: '#FFFFFF',
+  borderTopWidth: 1,
+  borderTopColor: '#E0E0E0',
+  paddingTop: 10,                // Jarak dari garis atas footer ke bagian atas ikon
+  paddingBottom: Platform.OS === 'ios' ? 60 : 40, // MULAI DENGAN NILAI INI untuk Android (25). 
+                                                 // Untuk iOS 35 (30 untuk home indicator + 5px buffer).
+                                                 // NAIKKAN NILAI UNTUK ANDROID JIKA 25 MASIH KURANG.
+  // HAPUS ATAU KOMENTARI PROPERTI 'height' DARI SINI:
+  // height: Platform.OS === 'ios' ? 80 : 60, 
+},
+footerNavItem: {
+  flex: 1,                        // Setiap item mengambil lebar yang sama
+  alignItems: 'center',           // Ikon di tengah item secara horizontal
+  justifyContent: 'center',       // Ikon di tengah item secara vertikal
+  paddingVertical: 10,            // Beri padding atas-bawah pada setiap item agar area sentuh lebih baik
+                                  // dan ini juga akan berkontribusi pada tinggi footer.
+},
 });

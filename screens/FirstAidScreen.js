@@ -1,18 +1,19 @@
-// screens/BantuanPertolonganPertamaScreen.js
+// screens/BantuanPertolonganPertamaScreen.js (atau FirstAidScreen.js)
 import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
+  // Image, // Image tidak digunakan di header ini, kecuali Anda ingin menambahkan logo kecil
   ScrollView,
   SafeAreaView,
   LayoutAnimation,
   Platform,
   UIManager,
+  StatusBar
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Menggunakan MaterialIcons
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Menggunakan MaterialCommunityIcons untuk panah
 
 // Aktifkan LayoutAnimation untuk Android
 if (Platform.OS === 'android') {
@@ -21,15 +22,31 @@ if (Platform.OS === 'android') {
   }
 }
 
-const AccordionItem = ({ title, children, isOpen, onPress, isFirstItem = false }) => {
+// Komponen AccordionItem dimodifikasi untuk style baru
+const AccordionItem = ({ title, children, isOpen, onPress, itemType = 'normal' }) => {
+  // Tentukan style berdasarkan itemType
+  const headerStyle = [
+    styles.accordionHeader,
+    itemType === 'emergency' ? styles.emergencyHeader : styles.normalHeader
+  ];
+  const titleStyle = [
+    styles.accordionTitle,
+    itemType === 'emergency' ? styles.emergencyTitleText : styles.normalTitleText
+  ];
+  const iconColor = itemType === 'emergency' ? "#FFFFFF" : "#FFFFFF"; // Ikon panah selalu putih
+  const contentStyle = [
+    styles.accordionContent,
+    itemType === 'emergency' ? styles.emergencyContent : styles.normalContent
+  ];
+
   return (
-    <View style={[styles.accordionContainer, isFirstItem && styles.firstAccordionContainer]}>
-      <TouchableOpacity style={styles.accordionHeader} onPress={onPress} activeOpacity={0.8}>
-        <Text style={styles.accordionTitle}>{title}</Text>
-        <Icon name={isOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={28} color={isFirstItem ? "#FFF" : "#4DB6AC"} />
+    <View style={styles.accordionContainer}>
+      <TouchableOpacity style={headerStyle} onPress={onPress} activeOpacity={0.8}>
+        <Text style={titleStyle}>{title}</Text>
+        <Icon name={isOpen ? 'chevron-up' : 'chevron-down'} size={28} color={iconColor} />
       </TouchableOpacity>
       {isOpen && (
-        <View style={[styles.accordionContent, isFirstItem && styles.firstAccordionContent]}>
+        <View style={contentStyle}>
           {children}
         </View>
       )}
@@ -39,51 +56,53 @@ const AccordionItem = ({ title, children, isOpen, onPress, isFirstItem = false }
 
 const EmergencyContact = ({ label, number }) => (
   <View style={styles.emergencyContactRow}>
-    <Text style={styles.emergencyLabel}>{label}:</Text>
+    <Text style={styles.emergencyLabel}>{label}: </Text>
     <Text style={styles.emergencyNumber}>{number}</Text>
   </View>
 );
 
 export default function BantuanPertolonganPertamaScreen({ navigation }) {
-  // Item "Telepon Darurat" terbuka secara default (index 0)
+  // Item "Bantuan Pertolongan Pertama" (indeks 0) terbuka secara default
   const [activeIndex, setActiveIndex] = useState(0);
 
   const emergencyContactsData = [
-    { label: 'Polisi', number: '110' },
-    { label: 'Ambulans', number: '118 & 119' },
-    { label: 'Basarnas', number: '115' },
-    { label: 'Posko Bencana Alam', number: '129' }, // Sesuai gambar
-    { label: 'PLN', number: '123' },             // Sesuai gambar
-    { label: 'Pemadam Kebakaran', number: '113 & 1131' }, // Sesuai gambar
+    { label: 'Nomor telepon polisi', number: '110' },
+    { label: 'Nomor telepon ambulans', number: '118 dan 119' },
+    { label: 'Nomor telepon Badan Search and Rescue Nasional (Basarnas)', number: '115' },
+    { label: 'Nomor telepon darurat masalah kekerasan terhadap perempuan dan anak SAPA 129', number: '129' },
+    // Tambahkan PLN dan Pemadam Kebakaran jika masih relevan dengan "Bantuan Pertolongan Pertama"
+    // { label: 'PLN', number: '123' },
+    // { label: 'Pemadam Kebakaran', number: '113 & 1131' },
   ];
 
   const pertolonganData = [
     {
-      title: 'Telepon Darurat',
-      isEmergencyContacts: true, // Flag khusus untuk item ini
-      content: emergencyContactsData, // Menggunakan data kontak darurat
+      title: 'Bantuan Pertolongan Pertama', // Judul sesuai gambar
+      itemType: 'emergency', // Tipe khusus untuk styling berbeda
+      isEmergencyContacts: true,
+      content: emergencyContactsData,
     },
     {
-      title: 'Pedoman CPR',
-      content: 'Deskripsi dan langkah-langkah untuk melakukan CPR (Cardiopulmonary Resuscitation)...',
+      title: 'Luka dan Pendarahan', // Sesuai gambar
+      itemType: 'normal',
+      content: "Luka, luka, luka yang 'ku rasakan\nBertubi-tubi-tubi engkau berikan\nCintaku bertepuk sebelah tangan\nTapi aku balas senyum keindahan\n\nBertahan satu cinta\nBertahan satu C.I.N.T.A\nBertahan satu cinta\nBertahan satu C.I.N.T.A", // Konten dari gambar
     },
     {
-      title: 'Serangan Jantung',
-      content: 'Kenali gejala serangan jantung dan tindakan pertama yang harus dilakukan...',
+      title: 'Luka Bakar',
+      itemType: 'normal',
+      content: 'Penanganan untuk berbagai jenis luka bakar, dari ringan hingga berat. Pastikan untuk mendinginkan area yang terbakar dengan air mengalir selama beberapa menit...',
     },
     {
-      title: 'Jatuh dan Memar',
-      content: 'Cara menangani memar dan cedera akibat jatuh...',
+      title: 'Patah Tulang',
+      itemType: 'normal',
+      content: 'Kenali gejala patah tulang dan jangan mencoba menggerakkan bagian yang cedera. Segera cari bantuan medis profesional...',
     },
     {
-      title: 'Kulit Terbakar',
-      content: 'Penanganan untuk berbagai jenis luka bakar, dari ringan hingga berat...',
+      title: 'Patah Hati', // Sesuai gambar (humor?)
+      itemType: 'normal',
+      content: 'Meskipun bukan cedera fisik, patah hati juga membutuhkan "pertolongan pertama" emosional. Berikan diri Anda waktu, bicara dengan orang terpercaya, dan lakukan hal yang Anda nikmati.',
     },
-    {
-      title: 'Mimisan',
-      content: 'Langkah-langkah efektif untuk menghentikan mimisan...',
-    },
-    // Tambahkan item lain jika perlu
+    // Tambahkan item lain seperti "Pedoman CPR", "Serangan Jantung", "Mimisan" jika perlu
   ];
 
   const toggleAccordion = (index) => {
@@ -92,25 +111,23 @@ export default function BantuanPertolonganPertamaScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.overallContainer}>
-      <ScrollView contentContainerStyle={styles.scrollContentContainer}>
-        <View style={styles.headerContainer}>
-          <Image
-            // GANTI DENGAN PATH LOGO ANDA YANG SESUAI DENGAN GAMBAR REVISI
-            // Placeholder jika logo dari gambar revisi belum ada:
-            source={require('../assets/images/MASEH IJO.png')} // Ganti dengan path logo Anda
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F4F6F8" />
+      <View style={styles.mainHeaderContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.mainBackButton}>
+          <Icon name="arrow-left" size={28} color="#333333" />
+        </TouchableOpacity>
+        <Text style={styles.mainHeaderTitle}>Panduan Pertolongan Pertama</Text>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.scrollContentContainer}>
         {pertolonganData.map((item, index) => (
           <AccordionItem
             key={index}
             title={item.title}
             isOpen={activeIndex === index}
             onPress={() => toggleAccordion(index)}
-            isFirstItem={index === 0} // Tandai jika ini item pertama
+            itemType={item.itemType} // Kirim tipe item untuk styling
           >
             {item.isEmergencyContacts ? (
               item.content.map((contact, cIndex) => (
@@ -121,46 +138,50 @@ export default function BantuanPertolonganPertamaScreen({ navigation }) {
             )}
           </AccordionItem>
         ))}
-        {/* Tombol Kembali dihapus sesuai desain baru */}
       </ScrollView>
+      {/* Tidak ada footer navigasi di layar ini sesuai desain */}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  overallContainer: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Latar belakang putih keseluruhan
+    backgroundColor: '#F4F6F8', // Latar belakang utama (abu-abu muda)
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  scrollContentContainer: {
-    flexGrow: 1,
-    paddingBottom: 30,
-  },
-  headerContainer: {
+  mainHeaderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 25 : 20,
-    paddingBottom: 15,
-    // backgroundColor: '#F8F8F8', // Jika header punya background berbeda
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    backgroundColor: '#F4F6F8', // Samakan dengan safeArea atau buat berbeda
+    // borderBottomWidth: 1, // Opsional: garis bawah header
+    // borderBottomColor: '#DCDCDC',
   },
-  headerTitle: {
-    fontSize: 22,
+  mainBackButton: {
+    padding: 8, // Area sentuh
+    marginRight: 10,
+  },
+  mainHeaderTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333', // Warna teks header
+    color: '#004D40', // Warna hijau tua Maseh
+  },
+  scrollContentContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingBottom: 20, // Jarak di akhir scroll
   },
   accordionContainer: {
-    backgroundColor: '#FFFFFF', // Latar belakang item accordion
-    borderRadius: 12, // Radius sudut item
-    marginHorizontal: 20,
+    borderRadius: 12,
     marginBottom: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E0E0E0', // Border tipis untuk semua item
-  },
-  firstAccordionContainer: { // Style khusus untuk item "Telepon Darurat"
-    backgroundColor: '#4DB6AC', // Warna header teal
-    borderColor: '#4DB6AC',
+    overflow: 'hidden', // Penting untuk borderRadius pada View
+    elevation: 2, // Shadow tipis
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   accordionHeader: {
     flexDirection: 'row',
@@ -169,59 +190,52 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 20,
   },
+  emergencyHeader: {
+    backgroundColor: '#D32F2F', // Merah untuk header darurat
+  },
+  normalHeader: {
+    backgroundColor: '#00695C', // Hijau tua untuk header normal
+  },
   accordionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#333333', // Warna judul default
-    flex: 1, // Agar judul mengambil ruang yang tersedia
+    flex: 1, 
   },
-  firstAccordionContainer_accordionTitle: { // Seharusnya ini diterapkan pada Text di dalam firstAccordionContainer
-     color: '#FFFFFF', // Warna judul putih untuk item pertama
+  emergencyTitleText: {
+    color: '#FFFFFF', // Teks putih
+  },
+  normalTitleText: {
+    color: '#FFFFFF', // Teks putih
   },
   accordionContent: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 18,
-    backgroundColor: '#FFFFFF', // Latar belakang konten default
+    paddingVertical: 15, // Padding atas dan bawah untuk konten
   },
-  firstAccordionContent: { // Style khusus untuk konten "Telepon Darurat"
-    backgroundColor: '#E0F2F1', // Warna latar belakang konten teal muda
-    paddingTop: 15,
-    paddingBottom:15,
+  emergencyContent: {
+    backgroundColor: '#FFEBEE', // Pink muda untuk konten darurat
+  },
+  normalContent: {
+    backgroundColor: '#E0F2F1', // Hijau muda untuk konten normal
   },
   accordionContentText: {
-    fontSize: 14,
-    color: '#555555',
-    lineHeight: 21,
+    fontSize: 15,
+    color: '#333333', // Warna teks konten
+    lineHeight: 22,
   },
   emergencyContactRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 8,
+    alignItems: 'flex-start', // Untuk teks yang mungkin wrap
   },
   emergencyLabel: {
-    fontSize: 14,
-    color: '#424242',
+    fontSize: 15,
+    color: '#D32F2F', // Warna teks label (merah)
+    marginRight: 5,
   },
   emergencyNumber: {
-    fontSize: 14,
-    color: '#424242',
+    fontSize: 15,
+    color: '#D32F2F',
     fontWeight: 'bold',
+    flexShrink: 1, // Agar nomor bisa wrap jika panjang
   },
-    logoIcon: {
-    marginRight: 10,
-  },
-
-  headerText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#00695C', // Warna teks MASEH
-  },
-
-  logoImage: {
-  width: 250,       // sesuaikan ukuran
-  height: 100,
-  alignSelf: 'center',
-  marginBottom: 30,
-},
 });

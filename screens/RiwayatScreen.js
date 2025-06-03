@@ -42,7 +42,7 @@ const formatTime = (date) => {
 const assessmentInfo = {
   PHQ9: {
     title: 'Tingkat Depresi', // Di gambar "Tingkat Stres" diubah jadi "Tingkat Depresi"
-    icon: require('../assets/images/MASEH PUTIH.png'), // GANTI DENGAN IKON BARU
+    icon: require('../assets/images/icon depresi.png'), // GANTI DENGAN IKON BARU
     getIndicator: (category) => {
       switch (category.toLowerCase()) {
         case 'parah': return { text: 'Parah', color: '#E53935' };
@@ -60,7 +60,7 @@ const assessmentInfo = {
   },
   SleepQuality: {
     title: 'Kualitas Tidur',
-    icon: require('../assets/images/MASEH PUTIH.png'), // GANTI DENGAN IKON BARU
+    icon: require('../assets/images/icon tidur.png'), // GANTI DENGAN IKON BARU
      getIndicator: (category) => {
       switch (category.toLowerCase()) {
         case 'sangat buruk': return { text: 'Sangat Buruk', color: '#D32F2F'};
@@ -74,7 +74,7 @@ const assessmentInfo = {
   },
   Lifestyle: {
     title: 'Gaya Hidup',
-    icon: require('../assets/images/MASEH PUTIH.png'), // GANTI DENGAN IKON BARU
+    icon: require('../assets/images/icon gaya hidup.png'), // GANTI DENGAN IKON BARU
     getIndicator: (category) => {
       switch (category.toLowerCase()) {
         case 'buruk': return { text: 'Buruk', color: '#E53935' };
@@ -169,7 +169,7 @@ export default function RiwayatScreen({ navigation }) {
       </SafeAreaView>
     );
   }
-
+const ILUSTRASI_PANDUAN = require('../assets/images/man confused_1.png'); // Buat gambar ini
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerOnlyTitle}>
@@ -178,7 +178,14 @@ export default function RiwayatScreen({ navigation }) {
 
       {groupedHistory.length === 0 && !isLoading ? (
         <View style={styles.centeredFlex}>
-            <Text style={styles.emptyText}>Belum ada riwayat tersimpan.</Text>
+          <Image
+            source={ILUSTRASI_PANDUAN} // Ganti dengan gambar ilustrasi Anda
+            style={styles.illustrationImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.emptyText2}>Ups, Masih Kosong!</Text>
+            <Text style={styles.emptyText}>Belum ada riwayat yang tercatat.</Text>
+            <Text style={styles.emptyText}>coba isi kuis stress, tidur, atau gaya hidup hari ini, ya!.</Text>
         </View>
       ) : (
         <SectionList
@@ -305,24 +312,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#757575',
     textAlign: 'center',
+  },
+  emptyText2: {
+    fontSize: 16,
+    fontStyle: 'Raleway',
+    color: "#242e49",
+    textAlign: "center",
+    marginTop:20,
   },
   // Style untuk footerNav (sama seperti di SettingsScreen.js atau DashboardScreen.js)
  footerNav: {
   flexDirection: 'row',
-  justifyContent: 'space-around', // Agar ikon tersebar rata
-  alignItems: 'center',          // Agar ikon terpusat secara vertikal di dalam tinggi footer
+  justifyContent: 'space-around', 
+  alignItems: 'center',          
   backgroundColor: '#FFFFFF',
   borderTopWidth: 1,
   borderTopColor: '#E0E0E0',
-  paddingTop: 10,                // Jarak dari garis atas footer ke bagian atas ikon
-  paddingBottom: Platform.OS === 'ios' ? 60 : 40, // MULAI DENGAN NILAI INI untuk Android (25). 
-                                                 // Untuk iOS 35 (30 untuk home indicator + 5px buffer).
-                                                 // NAIKKAN NILAI UNTUK ANDROID JIKA 25 MASIH KURANG.
-  // HAPUS ATAU KOMENTARI PROPERTI 'height' DARI SINI:
-  // height: Platform.OS === 'ios' ? 80 : 60, 
+  paddingTop: 10,              
+  paddingBottom: Platform.OS === 'ios' ? 60 : 40, 
 },
 footerNavItem: {
   flex: 1,                        // Setiap item mengambil lebar yang sama
@@ -331,4 +341,13 @@ footerNavItem: {
   paddingVertical: 10,            // Beri padding atas-bawah pada setiap item agar area sentuh lebih baik
                                   // dan ini juga akan berkontribusi pada tinggi footer.
 },
+illustrationContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+    padding: 10,
+  },
+  illustrationImage: {
+    width: 200, 
+    height: 200, 
+  },
 });

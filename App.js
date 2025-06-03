@@ -76,14 +76,14 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} /> 
         <Stack.Screen name="AboutUs" component={AboutUsScreen} options={{ headerShown: false }} />  
-        <Stack.Screen name="Panduan1" component={Panduanstres} />
-        <Stack.Screen name="Panduan2" component={Panduangayahidup} />
-        <Stack.Screen name="Panduan3" component={Panduantidur} />
-        <Stack.Screen name="PHQ9" component={PHQ9Screen} />
-        <Stack.Screen name="PSQI" component={PSQIScreen} />
-        <Stack.Screen name="Lifestyle" component={LifestyleScreen} />
-        <Stack.Screen name="FirstAid" component={FirstAidScreen} />
-        <Stack.Screen name="PHQ9Result" component={PHQ9ResultScreen} />
+        <Stack.Screen name="Panduan1" component={Panduanstres} options={{headerShown: false}}/>
+        <Stack.Screen name="Panduan2" component={Panduangayahidup} options={{headerShown: false}}/>
+        <Stack.Screen name="Panduan3" component={Panduantidur} options={{headerShown: false}}/>
+        <Stack.Screen name="PHQ9" component={PHQ9Screen} options ={{headerShown: false}}/>
+        <Stack.Screen name="PSQI" component={PSQIScreen} options ={{headerShown: false}}/>
+        <Stack.Screen name="Lifestyle" component={LifestyleScreen} options ={{headerShown: false}}/>
+        <Stack.Screen name="FirstAid" component={FirstAidScreen} options={{headerShown: false}}/>
+        <Stack.Screen name="PHQ9Result" component={PHQ9ResultScreen} options={{headerShown: false}}/>
         <Stack.Screen name="Riwayat" component={RiwayatScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="RiwayatDetail" component={RiwayatDetailScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>

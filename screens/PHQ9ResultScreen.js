@@ -1,12 +1,27 @@
 // screens/PHQ9ResultScreen.js
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, SafeAreaView, Alert } from 'react-native';
-// Hanya import addAssessmentResult (getDBConnection akan dipanggil di dalamnya)
-import { addAssessmentResult } from '../database/database.js'; // Pastikan path ini benar
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  SafeAreaView,
+  Alert,
+  ImageBackground, // <-- Tambahkan ImageBackground
+  StatusBar,       // <-- Tambahkan StatusBar
+  Platform
+} from 'react-native';
+import { addAssessmentResult } from '../database/database.js';
+
+// Ganti dengan path gambar LATAR BELAKANG BERPOLA GELAP Anda
+const BACKGROUND_HASIL_GELAP = require('../assets/images/Panduan.png'); // Gunakan gambar yang sama atau buat yang baru
+// Logo untuk header (mungkin versi terang jika latar gelap)
+const LOGO_HEADER_HASIL = require('../assets/images/Layer 2.png'); // Ganti dengan logo yang kontras
 
 export default function PHQ9ResultScreen({ route, navigation }) {
   const { score, category, advice, answers } = route.params || {};
-
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
@@ -15,22 +30,15 @@ export default function PHQ9ResultScreen({ route, navigation }) {
       Alert.alert("Info", "Hasil ini sudah disimpan ke riwayat.");
       return;
     }
-
     setIsSaving(true);
     try {
-      // --- PERUBAHAN DI SINI ---
-      // Tidak perlu: const db = await getDBConnection();
-      
-      await addAssessmentResult( // Langsung panggil tanpa argumen 'db'
-        // db, // Hapus argumen ini
-        'PHQ9', // Tipe asesmen
+      await addAssessmentResult(
+        'PHQ9',
         score,
         category,
         advice,
-        answers ? JSON.stringify(answers) : null // Simpan 'answers' sebagai details
+        answers ? JSON.stringify(answers) : null
       );
-      // --------------------------
-
       setHasSaved(true);
       Alert.alert('Sukses', 'Hasil tes berhasil disimpan ke riwayat.');
     } catch (error) {
@@ -42,151 +50,159 @@ export default function PHQ9ResultScreen({ route, navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.overallContainer}>
-      <ScrollView contentContainerStyle={styles.scrollContentContainer}>
-        <View style={styles.headerContainer}>
-          <Image
-            source={require('../assets/images/MASEH IJO.png')} // Pastikan path ini benar
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </View>
+    <ImageBackground
+        source={BACKGROUND_HASIL_GELAP}
+        style={styles.backgroundImageContainer}
+        resizeMode="cover"
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
+        <ScrollView contentContainerStyle={styles.scrollContentContainer}>
+          <View style={styles.headerContainer}>
+            <Image
+              source={LOGO_HEADER_HASIL} // Logo yang kontras dengan latar gelap
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
 
-        <View style={styles.scoreContainer}>
-          <Text style={styles.scoreTitle}>Skor</Text>
-          <Text style={styles.scoreValue}>{score ?? 'N/A'}</Text>
-        </View>
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreTitle}>Skor Anda</Text>
+            <Text style={styles.scoreValue}>{score ?? 'N/A'}</Text>
+          </View>
 
-        <Text style={styles.categoryDescriptionText}>
-          {category ?? 'Kategori tidak tersedia'}
-        </Text>
+          <View style={styles.resultCard}>
+            <Text style={styles.cardTitle}>Kategori Penilaian</Text>
+            <Text style={styles.cardContent}>
+              {category ?? 'Kategori tidak tersedia'}
+            </Text>
+          </View>
 
-        <View style={styles.adviceContainer}>
-          <Text style={styles.adviceTitle}>Saran</Text>
-          <Text style={styles.adviceContentText}>
-            {advice ?? 'Saran tidak tersedia.'}
-          </Text>
-        </View>
+          <View style={styles.resultCard}>
+            <Text style={styles.cardTitle}>Saran Untuk Anda</Text>
+            <Text style={styles.cardContent}>
+              {advice ?? 'Saran tidak tersedia.'}
+            </Text>
+          </View>
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.saveButton, hasSaved && styles.disabledButton]}
-          onPress={handleSaveResult}
-          disabled={isSaving || hasSaved}
-        >
-          <Text style={styles.actionButtonText}>
-            {isSaving ? "Menyimpan..." : (hasSaved ? "Tersimpan ✓" : "Simpan ke Riwayat")}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.saveButton, hasSaved && styles.disabledButton]}
+            onPress={handleSaveResult}
+            disabled={isSaving || hasSaved}
+          >
+            <Text style={styles.actionButtonText}>
+              {isSaving ? "Menyimpan..." : (hasSaved ? "Tersimpan ✓" : "Simpan ke Riwayat")}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.backButton]}
-          onPress={() => navigation.replace('Dashboard')}
-        >
-          <Text style={styles.backButtonText}>Selesai</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.backButton]}
+            onPress={() => navigation.replace('Dashboard')}
+          >
+            <Text style={styles.backButtonText}>Selesai</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
-// Styles (tetap sama persis seperti yang Anda kirim sebelumnya)
 const styles = StyleSheet.create({
-  overallContainer: {
+  backgroundImageContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'transparent', // Penting agar ImageBackground terlihat
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scrollContentContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 30, // Padding atas dan bawah lebih besar
     paddingHorizontal: 20,
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 30, // Jarak lebih besar
   },
   logoImage: {
-    width: 180,
-    height: 60,
+    width: 160, // Sesuaikan ukuran logo
+    height: 55,
   },
   scoreContainer: {
-    backgroundColor: '#80CBC4',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Latar semi-transparan terang
     borderRadius: 15,
     paddingVertical: 20,
     paddingHorizontal: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    width: '60%',
-    minHeight: 100,
+    marginBottom: 25,
+    width: '70%', // Sedikit lebih lebar
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   scoreTitle: {
-    fontSize: 26,
+    fontSize: 24, // Sedikit lebih kecil agar proporsional
     fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 5,
+    color: '#FFFFFF', // Teks putih
+    marginBottom: 8,
   },
   scoreValue: {
-    fontSize: 22,
+    fontSize: 36, // Skor lebih besar
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#FFFFFF',
   },
-  categoryDescriptionText: {
-    fontSize: 14,
-    color: '#333333',
-    textAlign: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 10,
-    lineHeight: 20,
-  },
-  adviceContainer: {
-    backgroundColor: '#E0F2F7',
-    borderRadius: 25,
+  resultCard: { // Menggantikan categoryDescriptionText dan adviceContainer
+    backgroundColor: 'rgba(0, 0, 0, 0.25)', // Latar semi-transparan gelap
+    borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  adviceTitle: {
-    fontSize: 28,
+  cardTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
-    textAlign: 'center',
-    marginBottom: 15,
+    color: '#E0F2F7', // Warna teks judul kartu (biru muda terang)
+    marginBottom: 10,
   },
-  adviceContentText: {
-    fontSize: 14,
-    color: '#333333',
-    textAlign: 'left',
-    lineHeight: 20,
+  cardContent: {
+    fontSize: 15,
+    color: '#CFD8DC', // Warna teks konten kartu (abu-abu terang)
+    lineHeight: 22,
   },
   actionButton: {
-    paddingVertical: 14,
+    paddingVertical: 15, // Sedikit lebih tinggi
     paddingHorizontal: 30,
     borderRadius: 25,
     alignItems: 'center',
-    width: '80%',
-    maxWidth: 300,
+    width: '85%', // Lebih lebar
+    maxWidth: 340,
     marginBottom: 15,
+    elevation: 2,
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#4DB6AC', // Warna hijau mint (sesuaikan agar kontras)
   },
   actionButtonText: {
-    color: '#FFFFFF',
+    color: '#FFFFFF', // Teks putih
     fontSize: 16,
     fontWeight: 'bold',
   },
   backButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent', // Tombol kembali transparan dengan border
     borderWidth: 1.5,
-    borderColor: '#80CBC4',
+    borderColor: '#80CBC4', // Border hijau mint terang
   },
   backButtonText: {
-    color: '#80CBC4',
+    color: '#80CBC4', // Teks hijau mint terang
     fontSize: 16,
     fontWeight: 'bold',
   },
   disabledButton: {
-    backgroundColor: '#A5D6A7',
+    backgroundColor: 'rgba(77, 182, 172, 0.5)', // Warna saveButton dengan opacity
   }
 });

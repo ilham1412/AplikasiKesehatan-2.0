@@ -305,11 +305,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row', // Untuk ikon dan teks
+    marginBottom:35,
   },
   actionButtonText: {
     color: 'white',
     fontSize: 17,
     fontWeight: 'bold',
+    
   },
   disabledButton: {
     backgroundColor: '#A5D6A7', // Warna tombol saat disabled

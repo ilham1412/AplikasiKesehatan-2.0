@@ -23,6 +23,8 @@ import RiwayatScreen from './screens/RiwayatScreen';
 import RiwayatDetailScreen from './screens/RiwayatDetailScreen';
 import SettingsScreen from './screens/SettingsScreen';  
 import AboutUsScreen from './screens/AboutUsScreen';
+import PSQIResultScreen from './screens/PSQIResultScreen.js';
+import LifestyleResultScreen from './screens/LifestyleResultScreen.js'
 
 import { initDatabase, getAppSetting } from './database/database.js';
 
@@ -65,7 +67,7 @@ export default function App() {
   }, []);
 
   if (isLoading || !initialRouteName) {
-    return <LoadingScreen />; // Gunakan komponen LoadingScreen yang diimpor
+    return <LoadingScreen />;
   }
 
   return (
@@ -86,12 +88,9 @@ export default function App() {
         <Stack.Screen name="PHQ9Result" component={PHQ9ResultScreen} options={{headerShown: false}}/>
         <Stack.Screen name="Riwayat" component={RiwayatScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="RiwayatDetail" component={RiwayatDetailScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="PSQIResult" component={PSQIResultScreen} options={{headerShown: false}} />
+        <Stack.Screen name="LifestyleResult" component={LifestyleResultScreen} options={{headershown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-// HAPUS styles.loadingContainer DARI SINI JIKA SUDAH DIPINDAH KE LoadingScreen.js
-// const styles = StyleSheet.create({
-//   loadingContainer: { ... }
-// });

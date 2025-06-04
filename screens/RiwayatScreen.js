@@ -58,7 +58,7 @@ const assessmentInfo = {
       }
     }
   },
-  SleepQuality: {
+  PSQI: {
     title: 'Kualitas Tidur',
     icon: require('../assets/images/icon tidur.png'), // GANTI DENGAN IKON BARU
      getIndicator: (category) => {
@@ -74,7 +74,7 @@ const assessmentInfo = {
   },
   Lifestyle: {
     title: 'Gaya Hidup',
-    icon: require('../assets/images/icon gaya hidup.png'), // GANTI DENGAN IKON BARU
+    icon: require('../assets/images/logo samping maseh.png'), // GANTI DENGAN IKON BARU
     getIndicator: (category) => {
       switch (category.toLowerCase()) {
         case 'buruk': return { text: 'Buruk', color: '#E53935' };

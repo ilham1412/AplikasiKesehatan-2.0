@@ -12,11 +12,9 @@ import {
     StatusBar,
     ImageBackground
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Untuk ikon kembali
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Ganti dengan path gambar ilustrasi utama Anda
 const ILUSTRASI_PANDUAN = require('../assets/images/man holding notes_1.png');
-// Ganti dengan path gambar LATAR BELAKANG BERPOLA Anda
 const BACKGROUND_BERPOLA = require('../assets/images/Panduan.png');
 
 export default function PanduanScreen({ navigation, route }) {
@@ -24,20 +22,9 @@ export default function PanduanScreen({ navigation, route }) {
   let teksDeskripsi = [
     "Kuesioner ini terdiri dari beberapa pertanyaan yang dirancang untuk membantu Anda memahami kondisi Anda saat ini. Bacalah setiap pertanyaan dengan saksama, lalu pilih jawaban yang paling sesuai dengan kondisi Anda dalam periode waktu yang ditentukan (misalnya, 2 minggu terakhir). Tidak ada jawaban benar atau salah—jawablah dengan jujur sesuai keadaan Anda."
   ];
-  let navigateToScreen = 'PHQ9'; // Default navigasi ke PHQ9
+  let navigateToScreen = 'PHQ9';
 
-  // Logika untuk menyesuaikan konten berdasarkan route.params bisa tetap di sini jika perlu
-  // Contoh:
-  // const { jenisTes } = route.params || {};
-  // if (jenisTes === 'PSQI') {
-  //   judulPanduan = "Panduan Pengisian Kualitas Tidur:";
-  //   // ... teksDeskripsi dan navigateToScreen disesuaikan ...
-  //   navigateToScreen = 'PSQI';
-  // } else if (jenisTes === 'Lifestyle') {
-  //   // ...
-  //   navigateToScreen = 'Lifestyle';
-  // }
-
+  // ... (Logika untuk menyesuaikan konten berdasarkan route.params) ...
 
   return (
     <ImageBackground
@@ -48,7 +35,6 @@ export default function PanduanScreen({ navigation, route }) {
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" />
         
-        {/* Header Kustom dengan Tombol Kembali */}
         <View style={styles.customHeader}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Icon name="arrow-left" size={28} color="#FFFFFF" />
@@ -56,7 +42,11 @@ export default function PanduanScreen({ navigation, route }) {
           <View style={{ width: 28 }} /> 
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* ScrollView sekarang hanya untuk konten utama, bukan tombol */}
+        <ScrollView 
+            style={styles.scrollViewArea} // Style baru untuk area scroll
+            contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>{judulPanduan}</Text>
           </View>
@@ -76,16 +66,19 @@ export default function PanduanScreen({ navigation, route }) {
               </Text>
             ))}
           </View>
-          
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate(navigateToScreen)}
-            >
-              <Text style={styles.buttonText}>Mulai</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Tombol Container dipindahkan ke luar ScrollView */}
         </ScrollView>
+
+        {/* Tombol Container sekarang di luar ScrollView, di dalam SafeAreaView */}
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate(navigateToScreen)}
+          >
+            <Text style={styles.buttonText}>Mulai</Text>
+          </TouchableOpacity>
+        </View>
+
       </SafeAreaView>
     </ImageBackground>
   );
@@ -99,35 +92,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    // justifyContent: 'space-between', // Hapus ini jika sudah ada ScrollView flex:1 dan View tombol statis
   },
-  customHeader: { // Style untuk header kustom
+  customHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // Untuk menyeimbangkan tombol kembali jika ada judul/placeholder
+    justifyContent: 'space-between',
     paddingHorizontal: 15,
-    paddingTop: Platform.OS === 'ios' ? 10 : 15, // Padding atas untuk header
-    paddingBottom: 10, // Padding bawah untuk header
-    // backgroundColor: 'rgba(0,0,0,0.1)', // Opsional: latar belakang tipis untuk header
+    paddingTop: Platform.OS === 'ios' ? 10 : 15,
+    paddingBottom: 10,
   },
   backButton: {
-    padding: 5, // Area sentuh
+    padding: 5,
   },
-  // customHeaderTitle: { // Aktifkan jika ingin ada judul di header kustom
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  //   color: '#FFFFFF',
-  // },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
+  // Area untuk ScrollView agar mengambil ruang yang tersedia sebelum tombol bawah
+  scrollViewArea: {
+      flex: 1, // Ini penting agar ScrollView mengambil sisa ruang vertikal
+  },
+  scrollContentContainer: {
+    // flexGrow: 1, // Tidak selalu perlu jika scrollViewArea sudah flex:1
     paddingHorizontal: 25,
-    paddingBottom: 20, // Padding bawah untuk konten scroll
-    // paddingTop sudah dihandle oleh header kustom atau jarak dari headerTextContainer
+    paddingBottom: 20, // Padding bawah untuk konten di dalam scroll, agar tidak tertutup total oleh tombol jika scroll penuh
+    // justifyContent: 'space-between', // Hapus ini karena tombol sudah statis di bawah
   },
   headerTextContainer: {
     alignItems: 'flex-start',
     marginBottom: 20,
-    marginTop: 10, // Mengurangi marginTop karena sudah ada header kustom
+    marginTop: 10,
   },
   headerTitle: {
     fontSize: 28,
@@ -145,7 +136,7 @@ const styles = StyleSheet.create({
     height: 220,
   },
   descriptionContainer: {
-    marginBottom: 40,
+    marginBottom: 20, // Kurangi margin bawah karena tombol sudah di luar scroll
   },
   descriptionText: {
     fontSize: 16,
@@ -154,8 +145,14 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginBottom: 15,
   },
-  buttonContainer: {
-    paddingBottom: 20,
+  // Style untuk container tombol yang sekarang statis di bawah
+  bottomButtonContainer: {
+    paddingHorizontal: 25, // Samakan dengan padding scrollContainer
+    paddingVertical: 15,   // Padding atas dan bawah untuk tombol
+    paddingBottom: Platform.OS === 'ios' ? 30 : 20, // Padding bawah ekstra untuk home indicator/navigasi sistem
+    backgroundColor: 'transparent', // Atau samakan dengan warna latar jika perlu
+    // borderTopWidth: 1, // Opsional: garis pemisah jika diinginkan
+    // borderTopColor: 'rgba(255,255,255,0.2)',
   },
   button: {
     backgroundColor: 'rgba(0, 77, 64, 0.9)',
@@ -169,6 +166,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
+    marginBottom:35,
   },
   buttonText: {
     color: '#FFFFFF',

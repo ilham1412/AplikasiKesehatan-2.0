@@ -495,6 +495,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    marginBottom: 35,
   },
   actionButtonText: {
     color: 'white',

@@ -13,18 +13,13 @@ import {
   StatusBar,
   Platform
 } from 'react-native';
-import { addAssessmentResult } from '../database/database.js'; // Pastikan path ini benar
+import { addAssessmentResult } from '../database/database.js';
 
-// Ganti dengan path gambar LATAR BELAKANG BERPOLA GELAP Anda
-// Anda bisa menggunakan gambar yang sama dengan PHQ9ResultScreen atau buat yang baru
 const BACKGROUND_HASIL_GELAP = require('../assets/images/Panduan.png'); 
-// Logo untuk header (mungkin versi terang jika latar gelap)
-const LOGO_HEADER_HASIL = require('../assets/images/Layer 2.png'); // Ganti dengan logo yang kontras
+const LOGO_HEADER_HASIL = require('../assets/images/Layer 2.png');
 
 export default function PSQIResultScreen({ route, navigation }) {
-  // Ambil data dari route.params. Pastikan PSQIScreen mengirimkan parameter ini.
-  // Parameter 'score' di sini adalah total skor PSQI Global.
-  const { score, category, advice, fullAnswers } = route.params || {}; // 'fullAnswers' adalah semua jawaban mentah dari PSQI
+  const { score, category, advice, fullAnswers } = route.params || {}; 
 
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
@@ -37,11 +32,11 @@ export default function PSQIResultScreen({ route, navigation }) {
     setIsSaving(true);
     try {
       await addAssessmentResult(
-        'PSQI', // <-- Tipe asesmen diubah menjadi 'PSQI'
+        'PSQI', 
         score,
         category,
         advice,
-        fullAnswers ? JSON.stringify(fullAnswers) : null // Simpan semua jawaban PSQI sebagai details
+        fullAnswers ? JSON.stringify(fullAnswers) : null 
       );
       setHasSaved(true);
       Alert.alert('Sukses', 'Hasil tes kualitas tidur berhasil disimpan ke riwayat.');
@@ -90,18 +85,6 @@ export default function PSQIResultScreen({ route, navigation }) {
             </Text>
           </View>
           
-          {/* Opsional: Tampilkan detail skor komponen PSQI jika Anda mengirimkannya */}
-          {/* Misalnya, jika route.params.components ada:
-          {route.params.components && (
-            <View style={styles.resultCard}>
-              <Text style={styles.cardTitle}>Detail Skor Komponen:</Text>
-              <Text style={styles.cardContent}>Durasi Tidur: {route.params.components.scoreDurat}</Text>
-              <Text style={styles.cardContent}>Gangguan Tidur: {route.params.components.scoreDistb}</Text>
-              // ... tambahkan komponen skor lainnya ...
-            </View>
-          )}
-          */}
-
           <TouchableOpacity
             style={[styles.actionButton, styles.saveButton, hasSaved && styles.disabledButton]}
             onPress={handleSaveResult}
@@ -124,9 +107,6 @@ export default function PSQIResultScreen({ route, navigation }) {
   );
 }
 
-// Styles bisa menggunakan yang sama dengan PHQ9ResultScreen.js
-// atau Anda bisa membuat beberapa penyesuaian kecil jika perlu.
-// Saya akan menyalin styles dari PHQ9ResultScreen.js yang sudah Anda berikan.
 const styles = StyleSheet.create({
   backgroundImageContainer: {
     flex: 1,
@@ -168,7 +148,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 8,
-    textAlign: 'center', // Untuk judul yang mungkin lebih panjang
+    textAlign: 'center',
   },
   scoreValue: {
     fontSize: 36,

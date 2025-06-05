@@ -15,12 +15,13 @@ import {
 } from 'react-native';
 import { addAssessmentResult } from '../database/database.js';
 
-const BACKGROUND_HASIL_GELAP = require('../assets/images/Panduan.png'); 
-const LOGO_HEADER_HASIL = require('../assets/images/Layer 2.png');
+// Ganti dengan path gambar LATAR BELAKANG BERPOLA GELAP Anda
+const BACKGROUND_HASIL_GELAP = require('../assets/images/Panduan.png'); // Gunakan gambar yang sama atau buat yang baru
+// Logo untuk header (mungkin versi terang jika latar gelap)
+const LOGO_HEADER_HASIL = require('../assets/images/Layer 2.png'); // Ganti dengan logo yang kontras
 
 export default function PSQIResultScreen({ route, navigation }) {
-  const { score, category, advice, fullAnswers } = route.params || {}; 
-
+  const { score, category, advice, answers } = route.params || {};
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
@@ -32,17 +33,17 @@ export default function PSQIResultScreen({ route, navigation }) {
     setIsSaving(true);
     try {
       await addAssessmentResult(
-        'PSQI', 
+        'PSQI',
         score,
         category,
         advice,
-        fullAnswers ? JSON.stringify(fullAnswers) : null 
+        answers ? JSON.stringify(answers) : null
       );
       setHasSaved(true);
       Alert.alert('Sukses', 'Hasil tes kualitas tidur berhasil disimpan ke riwayat.');
     } catch (error) {
       console.error('Failed to save PSQI result from ResultScreen:', error);
-      Alert.alert('Error', 'Gagal menyimpan hasil tes. Silakan coba lagi.');
+      Alert.alert('Error', 'Gagal menyimpan hasil tes kualitas tidur. Silakan coba lagi.');
     } finally {
       setIsSaving(false);
     }
@@ -50,9 +51,9 @@ export default function PSQIResultScreen({ route, navigation }) {
 
   return (
     <ImageBackground
-        source={BACKGROUND_HASIL_GELAP}
-        style={styles.backgroundImageContainer}
-        resizeMode="cover"
+      source={BACKGROUND_HASIL_GELAP}
+      style={styles.backgroundImageContainer}
+      resizeMode="cover"
     >
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" />
@@ -65,26 +66,26 @@ export default function PSQIResultScreen({ route, navigation }) {
             />
           </View>
 
-          <View style={styles.scoreContainer}>
-            {/* Judul bisa disesuaikan untuk PSQI */}
+          {/* Bagian skor kualitas tidur TIDAK DITAMPILKAN */}
+          {/* <View style={styles.scoreContainer}>
             <Text style={styles.scoreTitle}>Skor Kualitas Tidur Anda</Text>
             <Text style={styles.scoreValue}>{score ?? 'N/A'}</Text>
-          </View>
+          </View> */}
 
-          <View style={styles.resultCard}>
-            <Text style={styles.cardTitle}>Kategori Kualitas Tidur</Text>
-            <Text style={styles.cardContent}>
+          <View style={styles.categoryCard}> {/* Menggunakan style baru untuk kategori */}
+            {/* <Text style={styles.categoryTitle}>Kategori Kualitas Tidur Anda</Text> */}
+            <Text style={styles.categoryContent}>
               {category ?? 'Kategori tidak tersedia'}
             </Text>
           </View>
 
           <View style={styles.resultCard}>
-            <Text style={styles.cardTitle}>Saran Untuk Anda</Text>
+            <Text style={styles.cardTitle}>Saran Untuk Kualitas Tidur Anda</Text>
             <Text style={styles.cardContent}>
               {advice ?? 'Saran tidak tersedia.'}
             </Text>
           </View>
-          
+
           <TouchableOpacity
             style={[styles.actionButton, styles.saveButton, hasSaved && styles.disabledButton]}
             onPress={handleSaveResult}
@@ -130,32 +131,34 @@ const styles = StyleSheet.create({
     width: 160,
     height: 55,
   },
-  scoreContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  // scoreContainer dihapus
+  categoryCard: { // Style baru untuk menonjolkan kategori
+    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Latar belakang semi-transparan terang
     borderRadius: 15,
-    paddingVertical: 20,
-    paddingHorizontal: 40,
+    paddingVertical: 30, // Lebih besar
+    paddingHorizontal: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 25,
-    width: '70%',
-    minHeight: 120,
+    marginBottom: 25, // Jarak ke elemen berikutnya
+    width: '90%', // Lebih lebar
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  scoreTitle: {
-    fontSize: 24,
+  categoryTitle: { // Menonjolkan judul kategori
+    fontSize: 26, // Ukuran font lebih besar
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    color: '#FFFFFF', // Teks putih
+    marginBottom: 10,
     textAlign: 'center',
   },
-  scoreValue: {
-    fontSize: 36,
+  categoryContent: { // Menonjolkan konten kategori
+    fontSize: 28, // Ukuran font lebih besar lagi
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#FFFFFF', // Teks putih
+    textAlign: 'center',
+    lineHeight: 36, // Jarak baris
   },
-  resultCard: {
+  resultCard: { // Ini adalah style untuk saran, sama seperti sebelumnya
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
     borderRadius: 15,
     padding: 20,

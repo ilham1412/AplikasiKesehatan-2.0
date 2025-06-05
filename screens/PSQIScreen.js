@@ -9,269 +9,627 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
-  ScrollView
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+// Helper function to convert time string (e.g., "22:30") to minutes from midnight
+const timeToMinutes = (timeString) => {
+  if (!timeString) return null;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+// PSQI Questions and their corresponding options and scoring logic
 const psqiQuestions = [
-  // Untuk contoh ini, kita fokus pada Q4 dengan UI angka besar.
-  // Anda perlu menambahkan pertanyaan lain dengan struktur serupa.
+  {
+    id: 'Q1',
+    text: 'Dalam 1 bulan terakhir, jam berapa biasanya Anda pergi tidur malam? (Contoh: 22:30)',
+    type: 'time',
+  },
+  {
+    id: 'Q2',
+    text: 'Dalam 1 bulan terakhir, berapa lama (dalam menit) biasanya waktu yang Anda butuhkan untuk tertidur setiap malam?',
+    type: 'options',
+    options: [
+      { text: '< 15 menit', value: 0 },
+      { text: '16-30 menit', value: 1 },
+      { text: '31-60 menit', value: 2 },
+      { text: '> 60 menit', value: 3 },
+    ],
+    component: 'C2a',
+  },
+  {
+    id: 'Q3',
+    text: 'Dalam 1 bulan terakhir, jam berapa biasanya Anda bangun tidur di pagi hari? (Contoh: 06:00)',
+    type: 'time',
+  },
   {
     id: 'Q4',
-    text: "Dalam sebulan terakhir, berapa jam tidur malam yang benar-benar Anda dapatkan?",
-    subtext: "*(ini mungkin berbeda dari jumlah jam yang Anda habiskan di tempat tidur.)*",
-    type: 'number_picker', // Tipe input khusus untuk UI angka besar
-    options: { min: 0, max: 12, step: 0.5, unit: 'jam' }, // Pengaturan untuk number picker
-    // Skor untuk DURATION OF SLEEP (PSQIDURAT) 
-    // >=7 jam -> skor 0
-    // <7 dan >=6 jam -> skor 1
-    // <6 dan >=5 jam -> skor 2
-    // <5 jam -> skor 3
-    // Kita akan menyimpan jawaban mentah dulu, scoring dilakukan di akhir
+    text: 'Dalam 1 bulan terakhir, berapa jam Anda benar-benar tidur setiap malam? (Ini mungkin berbeda dengan jumlah jam yang Anda habiskan di tempat tidur.)',
+    type: 'options',
+    options: [
+      { text: '> 7 jam', value: 0 },
+      { text: '6-7 jam', value: 1 },
+      { text: '5-6 jam', value: 2 },
+      { text: '< 5 jam', value: 3 },
+    ],
+    component: 'C3',
   },
   {
     id: 'Q5a',
-    text: "Dalam sebulan terakhir, seberapa sering Anda kesulitan tidur karena TIDAK BISA TIDUR DALAM 30 MENIT?",
-    type: 'single_choice',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Tidak bisa tertidur dalam 30 menit?',
+    type: 'options',
     options: [
-      { text: "Tidak pernah selama sebulan terakhir", value: 0 },
-      { text: "Kurang dari sekali seminggu", value: 1 },
-      { text: "Sekali atau dua kali seminggu", value: 2 },
-      { text: "Tiga kali atau lebih seminggu", value: 3 },
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
     ],
+    component: 'C2b',
+  },
+  {
+    id: 'Q5b',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Bangun di tengah malam atau dini hari?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5c',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Harus pergi ke kamar mandi?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5d',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Tidak bisa bernapas dengan nyaman?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5e',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Batuk atau mendengkur keras?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5f',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Merasa terlalu dingin?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5g',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Merasa terlalu panas?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5h',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Mengalami mimpi buruk?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5i',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Nyeri?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+  },
+  {
+    id: 'Q5j',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami kesulitan tidur karena: Alasan lain?',
+    type: 'options-with-text',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C5_part',
+    placeholder: 'Silakan jelaskan alasan lain...',
   },
   {
     id: 'Q6',
-    text: "Dalam sebulan terakhir, bagaimana Anda menilai KUALITAS TIDUR Anda secara keseluruhan?",
-    type: 'single_choice',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda minum obat (yang diresepkan atau yang dijual bebas) untuk membantu Anda tidur?',
+    type: 'options',
     options: [
-      { text: "Sangat baik", value: 0 },
-      { text: "Cukup baik", value: 1 },
-      { text: "Cukup buruk", value: 2 },
-      { text: "Sangat buruk", value: 3 },
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
     ],
+    component: 'C6',
   },
-  // ... Tambahkan pertanyaan PSQI lainnya (Q1, Q2, Q3, Q5b-j, Q7, Q8, Q9)
-  // dengan tipe 'single_choice', 'time_input', atau 'number_input' sesuai kebutuhan.
+  {
+    id: 'Q7',
+    text: 'Dalam 1 bulan terakhir, seberapa sering Anda mengalami masalah untuk tetap terjaga saat mengemudi, makan, atau melakukan aktivitas sosial?',
+    type: 'options',
+    options: [
+      { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+      { text: 'Kurang dari sekali seminggu', value: 1 },
+      { text: 'Satu atau dua kali seminggu', value: 2 },
+      { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+    ],
+    component: 'C7a',
+  },
+  {
+    id: 'Q8',
+    text: 'Dalam 1 bulan terakhir, seberapa besar masalahnya bagi Anda untuk mempertahankan semangat yang cukup untuk menyelesaikan sesuatu?',
+    type: 'options',
+    options: [
+      { text: 'Tidak ada masalah sama sekali', value: 0 },
+      { text: 'Hanya masalah yang sangat sedikit', value: 1 },
+      { text: 'Agak menjadi masalah', value: 2 },
+      { text: 'Masalah yang sangat besar', value: 3 },
+    ],
+    component: 'C7b',
+  },
+  {
+    id: 'Q9',
+    text: 'Dalam 1 bulan terakhir, bagaimana Anda menilai kualitas tidur Anda secara keseluruhan?',
+    type: 'options',
+    options: [
+      { text: 'Sangat baik', value: 0 },
+      { text: 'Cukup baik', value: 1 },
+      { text: 'Cukup buruk', value: 2 },
+      { text: 'Sangat buruk', value: 3 },
+    ],
+    component: 'C1',
+  },
+  {
+    id: 'Q10_has_partner',
+    text: 'Dalam 1 bulan terakhir, apakah Anda memiliki pasangan di tempat tidur atau teman sekamar?',
+    type: 'options',
+    options: [
+      { text: 'Tidak punya pasangan di tempat tidur atau teman sekamar', value: 'no_partner' },
+      { text: 'Pasangan/teman sekamar di ruangan lain', value: 'partner_other_room' },
+      { text: 'Pasangan di ruangan yang sama tetapi tidak satu ranjang', value: 'partner_same_room_diff_bed' },
+      { text: 'Pasangan di ranjang yang sama', value: 'partner_same_bed' },
+    ],
+    component: null,
+    conditionalQuestions: [
+      {
+        id: 'Q10a',
+        text: 'Seberapa sering orang tersebut memperhatikan Anda mendengkur keras?',
+        type: 'options',
+        options: [
+          { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+          { text: 'Kurang dari sekali seminggu', value: 1 },
+          { text: 'Satu atau dua kali seminggu', value: 2 },
+          { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+        ],
+        component: null,
+      },
+      {
+        id: 'Q10b',
+        text: 'Seberapa sering orang tersebut memperhatikan Anda jeda panjang di antara napas saat tidur?',
+        type: 'options',
+        options: [
+          { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+          { text: 'Kurang dari sekali seminggu', value: 1 },
+          { text: 'Satu atau dua kali seminggu', value: 2 },
+          { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+        ],
+        component: null,
+      },
+      {
+        id: 'Q10c',
+        text: 'Seberapa sering orang tersebut memperhatikan Anda kaki berkedut atau menyentak saat tidur?',
+        type: 'options',
+        options: [
+          { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+          { text: 'Kurang dari sekali seminggu', value: 1 },
+          { text: 'Satu atau dua kali seminggu', value: 2 },
+          { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+        ],
+        component: null,
+      },
+      {
+        id: 'Q10d',
+        text: 'Seberapa sering orang tersebut memperhatikan Anda episode disorientasi atau kebingungan saat tidur?',
+        type: 'options',
+        options: [
+          { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+          { text: 'Kurang dari sekali seminggu', value: 1 },
+          { text: 'Satu atau dua kali seminggu', value: 2 },
+          { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+        ],
+        component: null,
+      },
+      {
+        id: 'Q10e',
+        text: 'Seberapa sering orang tersebut memperhatikan Anda kegelisahan lain saat tidur? Silakan jelaskan:',
+        type: 'options-with-text',
+        options: [
+          { text: 'Tidak pernah dalam 1 bulan terakhir', value: 0 },
+          { text: 'Kurang dari sekali seminggu', value: 1 },
+          { text: 'Satu atau dua kali seminggu', value: 2 },
+          { text: 'Tiga kali atau lebih dalam seminggu', value: 3 },
+        ],
+        component: null,
+        placeholder: 'Silakan jelaskan kegelisahan lainnya...',
+      },
+    ]
+  },
 ];
 
 
-// --- Fungsi Perhitungan Skor PSQI ---
-// Ini akan menjadi fungsi yang kompleks berdasarkan PDF scoring
-const calculatePSQIScoreAndCategory = (answers) => {
-  let scoreDurat = 0;
-  let scoreDistb = 0;
-  let scoreLaten = 0;
-  let scoreDaydys = 0;
-  let scoreHse = 0; // Sleep Efficiency
-  let scoreSlpqual = 0;
-  let scoreMeds = 0;
-
-  // 1. PSQIDURAT (Durasi Tidur) - Berdasarkan jawaban Q4 
-  const actualSleepHours = answers['Q4']; // Jawaban mentah dari Q4
-  if (actualSleepHours >= 7) scoreDurat = 0;
-  else if (actualSleepHours >= 6) scoreDurat = 1;
-  else if (actualSleepHours >= 5) scoreDurat = 2;
-  else if (actualSleepHours < 5) scoreDurat = 3;
-  else scoreDurat = 0; // Default jika tidak ada jawaban (perlu penanganan lebih baik)
-
-
-  // 2. PSQIDISTB (Gangguan Tidur) - Berdasarkan Q5b sampai Q5j 
-  // Skor Q5b s/d Q5j adalah 0-3. Jumlahkan semua.
-  // Jika Q5j atau komentarnya null, Q5j = 0.
-  let sumQ5b_j = 0;
-  const q5Items = ['Q5b', 'Q5c', 'Q5d', 'Q5e', 'Q5f', 'Q5g', 'Q5h', 'Q5i', 'Q5j'];
-  q5Items.forEach(qid => {
-    // Asumsi jika Q5j belum ada di 'answers', kita perlu handle.
-    // Untuk Q5j, jika tidak ada komentar atau nilai, skornya 0. Ini perlu diimplementasikan jika Anda menambahkan Q5j.
-    // Untuk sekarang, kita anggap semua Q5b-i ada dan Q5j = 0 jika tidak ada.
-    sumQ5b_j += (answers[qid] || 0); 
-  });
-  if (sumQ5b_j === 0) scoreDistb = 0;
-  else if (sumQ5b_j >= 1 && sumQ5b_j <= 9) scoreDistb = 1;
-  else if (sumQ5b_j > 9 && sumQ5b_j <= 18) scoreDistb = 2; // PDF: >9 dan <=18
-  else if (sumQ5b_j > 18) scoreDistb = 3; // PDF: >18
-
-  // 3. PSQILATEN (Latensi Tidur) - Berdasarkan Q2 (menit) dan Q5a 
-  // Q2 (menit untuk tidur) -> perlu di-recode ke Q2new (0-3)
-  // Q5a (kesulitan tidur <30mnt) -> skor 0-3
-  // LATEN = skor Q2new + skor Q5a -> lalu di-recode lagi
-  const q2Minutes = answers['Q2'] || 0; // Asumsi Q2 adalah jawaban mentah menit
-  let q2NewScore = 0;
-  if (q2Minutes >= 0 && q2Minutes <= 15) q2NewScore = 0;
-  else if (q2Minutes > 15 && q2Minutes <= 30) q2NewScore = 1;
-  else if (q2Minutes > 30 && q2Minutes <= 60) q2NewScore = 2;
-  else if (q2Minutes > 60) q2NewScore = 3;
-  
-  const q5aScore = answers['Q5a'] || 0;
-  const sumLaten = q2NewScore + q5aScore;
-
-  if (sumLaten === 0) scoreLaten = 0;
-  else if (sumLaten >= 1 && sumLaten <= 2) scoreLaten = 1; // PDF: >1 dan <=2 salah, seharusnya >=1 dan <=2
-  else if (sumLaten >= 3 && sumLaten <= 4) scoreLaten = 2; // PDF: >3 dan <=4 salah, seharusnya >=3 dan <=4
-  else if (sumLaten >= 5 && sumLaten <= 6) scoreLaten = 3; // PDF: >5 dan <=6 salah, seharusnya >=5 dan <=6
-  
-  // 4. PSQIDAYDYS (Disfungsi Siang Hari) - Berdasarkan Q8 dan Q9 
-  const q8Score = answers['Q8'] || 0;
-  const q9Score = answers['Q9'] || 0;
-  const sumDaydys = q8Score + q9Score;
-  if (sumDaydys === 0) scoreDaydys = 0;
-  else if (sumDaydys >= 1 && sumDaydys <= 2) scoreDaydys = 1;
-  else if (sumDaydys >= 3 && sumDaydys <= 4) scoreDaydys = 2;
-  else if (sumDaydys >= 5 && sumDaydys <= 6) scoreDaydys = 3;
-
-  // 5. PSQIHSE (Efisiensi Tidur) - Berdasarkan Q1, Q3, Q4 
-  // Ini paling kompleks: Waktu di tempat tidur (newtib) = Q3 - Q1
-  // Efisiensi = (Q4 / newtib) * 100
-  // Untuk implementasi penuh, Anda perlu input Q1 (waktu tidur) dan Q3 (waktu bangun)
-  // Untuk sekarang, kita bisa set default atau hitung berdasarkan asumsi jika data tidak lengkap
-  // Misal kita butuh jawaban Q1 (bedTime) dan Q3 (getUpTime)
-  // const bedTime = answers['Q1']; // misal '22:00'
-  // const getUpTime = answers['Q3']; // misal '06:00'
-  // Jika data ini tidak ada, HSE tidak bisa dihitung akurat. Untuk contoh, kita set 0.
-  scoreHse = 0; // Placeholder, perlu implementasi penuh dengan Q1 dan Q3
-
-  // 6. PSQISLPQUAL (Kualitas Tidur Subjektif) - Berdasarkan Q6 
-  scoreSlpqual = answers['Q6'] || 0;
-
-  // 7. PSQIMEDS (Penggunaan Obat Tidur) - Berdasarkan Q7 
-  scoreMeds = answers['Q7'] || 0;
-
-
-  // Total Skor PSQI 
-  const totalScore = scoreDurat + scoreDistb + scoreLaten + scoreDaydys + scoreHse + scoreSlpqual + scoreMeds;
-
-  let category = '';
-  let advice = '';
-
-  // Interpretasi Total Skor PSQI 
-  if (totalScore <= 5) {
-    category = 'Kualitas Tidur Baik';
-    advice = 'Kualitas tidur Anda secara umum baik. Pertahankan kebiasaan tidur yang sehat!';
-  } else { // totalScore > 5
-    category = 'Kualitas Tidur Buruk';
-    advice = 'Kualitas tidur Anda menunjukkan adanya masalah. Pertimbangkan untuk memperbaiki rutinitas tidur Anda. Jika masalah berlanjut, konsultasikan dengan dokter atau spesialis tidur.';
+// Function to get category and advice based on PSQI Global Score
+const getPsqiCategoryAndAdvice = (score) => {
+  if (score <= 5) {
+    return { category: 'Kualitas Tidur \nBaik', advice: 'Anda memiliki kualitas tidur yang baik. Pertahankan kebiasaan tidur sehat Anda!' };
+  } else if (score >= 6 && score <= 10) {
+    return { category: 'Kualitas Tidur \nCukup Baik', advice: 'Kualitas tidur Anda menunjukkan gangguan ringan. Pertimbangkan untuk meningkatkan kebiasaan tidur Anda.' };
+  } else if (score >= 11 && score <= 15) {
+    return { category: 'Kualitas Tidur \nBuruk', advice: 'Kualitas tidur Anda terganggu sedang. Perhatikan pola tidur Anda dan pertimbangkan konsultasi jika berlanjut.' };
+  } else {
+    return { category: 'Kualitas Tidur \nSangat Buruk', advice: 'Kualitas tidur Anda sangat terganggu. Sangat disarankan untuk mencari saran profesional terkait tidur.' };
   }
-
-  // Anda juga bisa mengembalikan skor per komponen jika ingin ditampilkan di detail
-  return {
-    totalScore,
-    category,
-    advice,
-    // components: { scoreDurat, scoreDistb, scoreLaten, scoreDaydys, scoreHse, scoreSlpqual, scoreMeds }
-  };
 };
 
 
 export default function PSQIScreen({ navigation }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // 'answers' sekarang akan menyimpan objek dengan key berupa id pertanyaan
   const [answers, setAnswers] = useState({});
-  const [currentNumberPickerValue, setCurrentNumberPickerValue] = useState(5); // Default untuk Q4, misalnya 5 jam
+  const [currentInput, setCurrentInput] = useState(null);
 
-  const currentQuestion = psqiQuestions[currentQuestionIndex];
+  const [showQ10SubQuestions, setShowQ10SubQuestions] = useState(false);
+  const [q10SubQuestionIndex, setQ10SubQuestionIndex] = useState(0);
 
-  // Set nilai awal untuk number picker saat pertanyaan berubah
+  const isQ10ParentQuestion = psqiQuestions[currentQuestionIndex] && psqiQuestions[currentQuestionIndex].id === 'Q10_has_partner';
+
+  // Determine current question to render
+  const currentQuestion = isQ10ParentQuestion && showQ10SubQuestions
+    ? psqiQuestions[currentQuestionIndex].conditionalQuestions[q10SubQuestionIndex]
+    : psqiQuestions[currentQuestionIndex];
+
+
   useEffect(() => {
-    if (currentQuestion.type === 'number_picker') {
-      setCurrentNumberPickerValue(answers[currentQuestion.id] ?? currentQuestion.options.min ?? 5);
+    // Only update currentInput if currentQuestion is not undefined (i.e., not past the end)
+    if (currentQuestion) {
+      const questionId = currentQuestion.id;
+      setCurrentInput(answers[questionId] !== undefined ? answers[questionId] : null);
     }
-  }, [currentQuestionIndex, currentQuestion, answers]);
+  }, [currentQuestionIndex, q10SubQuestionIndex, answers, currentQuestion]);
 
 
-  const handleSelectOption = (questionId, optionValue) => {
+  const handleSelectOption = (optionValue) => {
+    setCurrentInput(optionValue);
+    // This is the correct way to update state based on previous state
+    setAnswers(prevAnswers => { // <--- prevAnswers is correctly passed here by React
+      const newAnswers = {
+        ...prevAnswers,
+        [currentQuestion.id]: optionValue,
+      };
+
+      // Special logic for Q10_has_partner to handle cancellation
+      if (currentQuestion.id === 'Q10_has_partner') {
+        if (optionValue === 'no_partner') {
+          // If "no_partner" selected, clear sub-answers
+          const q10ConditionalQuestions = psqiQuestions[currentQuestionIndex].conditionalQuestions;
+          q10ConditionalQuestions.forEach(q => {
+            delete newAnswers[q.id]; // Delete directly from newAnswers
+            if (q.type === 'options-with-text') {
+              delete newAnswers[`${q.id}_text`];
+            }
+          });
+          setShowQ10SubQuestions(false);
+          setQ10SubQuestionIndex(0);
+        } else {
+          // If they select an option that requires sub-questions, ensure they are shown
+          setShowQ10SubQuestions(true);
+          setQ10SubQuestionIndex(0);
+        }
+      }
+      return newAnswers; // Return the updated state
+    });
+  };
+
+  const handleTextInput = (text) => {
+    setCurrentInput(text);
     setAnswers(prevAnswers => ({
       ...prevAnswers,
-      [questionId]: optionValue,
+      [currentQuestion.id]: text,
     }));
   };
 
-  const handleNumberPickerChange = (newValue) => {
-    let value = Math.max(currentQuestion.options.min, Math.min(currentQuestion.options.max, newValue));
-    // Handle step jika ada (misal 0.5 untuk jam)
-    if (currentQuestion.options.step === 0.5) {
-        value = Math.round(value * 2) / 2;
-    } else {
-        value = Math.round(value);
+  const calculatePsqiScore = () => {
+    let componentScores = {
+      C1: 0,
+      C2: 0,
+      C3: 0,
+      C4: 0,
+      C5: 0,
+      C6: 0,
+      C7: 0,
+    };
+
+    // Component 1: Subjective Sleep Quality (Q9)
+    if (answers['Q9'] !== undefined) {
+      componentScores.C1 = answers['Q9'];
     }
-    setCurrentNumberPickerValue(value);
-    handleSelectOption(currentQuestion.id, value); // Simpan langsung
+
+    // Component 2: Sleep Latency (Q2 and Q5a)
+    let q2Subscore = answers['Q2'] !== undefined ? answers['Q2'] : 0;
+    let q5aSubscore = answers['Q5a'] !== undefined ? answers['Q5a'] : 0;
+    let sumQ2Q5a = q2Subscore + q5aSubscore;
+
+    if (sumQ2Q5a === 0) componentScores.C2 = 0;
+    else if (sumQ2Q5a >= 1 && sumQ2Q5a <= 2) componentScores.C2 = 1;
+    else if (sumQ2Q5a >= 3 && sumQ2Q5a <= 4) componentScores.C2 = 2;
+    else if (sumQ2Q5a >= 5 && sumQ2Q5a <= 6) componentScores.C2 = 3;
+
+    // Component 3: Sleep Duration (Q4)
+    if (answers['Q4'] !== undefined) {
+      componentScores.C3 = answers['Q4'];
+    }
+
+    // Component 4: Habitual Sleep Efficiency (Q1, Q3, Q4)
+    const bedtimeMinutes = timeToMinutes(answers['Q1']);
+    const wakeupTimeMinutes = timeToMinutes(answers['Q3']);
+    const q4Score = answers['Q4']; // This is the score from Q4
+    let actualSleepHours;
+
+    // Convert Q4 score back to estimated hours for calculation
+    if (q4Score === 0) actualSleepHours = 7.5; // > 7 hours
+    else if (q4Score === 1) actualSleepHours = 6.5; // 6-7 hours
+    else if (q4Score === 2) actualSleepHours = 5.5; // 5-6 hours
+    else if (q4Score === 3) actualSleepHours = 4.5; // < 5 hours
+    else actualSleepHours = 0; // Fallback
+
+    let hoursInBed = 0;
+    if (bedtimeMinutes !== null && wakeupTimeMinutes !== null) {
+      if (wakeupTimeMinutes > bedtimeMinutes) {
+        hoursInBed = (wakeupTimeMinutes - bedtimeMinutes) / 60;
+      } else {
+        // Across midnight
+        hoursInBed = (24 * 60 - bedtimeMinutes + wakeupTimeMinutes) / 60;
+      }
+    }
+
+    let sleepEfficiency = 0;
+    if (hoursInBed > 0) {
+      sleepEfficiency = (actualSleepHours / hoursInBed) * 100;
+    }
+
+    if (sleepEfficiency > 85) componentScores.C4 = 0;
+    else if (sleepEfficiency >= 75 && sleepEfficiency <= 85) componentScores.C4 = 1;
+    else if (sleepEfficiency >= 65 && sleepEfficiency <= 74) componentScores.C4 = 2;
+    else if (sleepEfficiency < 65) componentScores.C4 = 3;
+
+
+    // Component 5: Sleep Disturbances (Sum of Q5b-j scores)
+    let disturbancesSum = 0;
+    const disturbanceQuestionIds = ['Q5b', 'Q5c', 'Q5d', 'Q5e', 'Q5f', 'Q5g', 'Q5h', 'Q5i', 'Q5j'];
+    disturbanceQuestionIds.forEach(qId => {
+      if (answers[qId] !== undefined && typeof answers[qId] === 'number') {
+        disturbancesSum += answers[qId];
+      }
+    });
+    if (disturbancesSum === 0) componentScores.C5 = 0;
+    else if (disturbancesSum >= 1 && disturbancesSum <= 9) componentScores.C5 = 1;
+    else if (disturbancesSum >= 10 && disturbancesSum <= 18) componentScores.C5 = 2;
+    else if (disturbancesSum >= 19 && disturbancesSum <= 27) componentScores.C5 = 3;
+
+    // Component 6: Use of Sleeping Medication (Q6)
+    if (answers['Q6'] !== undefined) {
+      componentScores.C6 = answers['Q6'];
+    }
+
+    // Component 7: Daytime Dysfunction (Q7 and Q8)
+    let q7Subscore = answers['Q7'] !== undefined ? answers['Q7'] : 0;
+    let q8Subscore = answers['Q8'] !== undefined ? answers['Q8'] : 0;
+    let sumQ7Q8 = q7Subscore + q8Subscore;
+
+    if (sumQ7Q8 === 0) componentScores.C7 = 0;
+    else if (sumQ7Q8 >= 1 && sumQ7Q8 <= 2) componentScores.C7 = 1;
+    else if (sumQ7Q8 >= 3 && sumQ7Q8 <= 4) componentScores.C7 = 2;
+    else if (sumQ7Q8 >= 5 && sumQ7Q8 <= 6) componentScores.C7 = 3;
+
+    const globalScore = Object.values(componentScores).reduce((sum, val) => sum + val, 0);
+    return globalScore;
   };
 
-
   const handleLanjutkan = () => {
-    if (answers[currentQuestion.id] === undefined || answers[currentQuestion.id] === null) {
-      Alert.alert("Pilihan Dibutuhkan", "Silakan pilih salah satu opsi atau masukkan nilai sebelum melanjutkan.");
+    // Validate current question's answer
+    const currentQuestionObject = psqiQuestions[currentQuestionIndex];
+    let isAnswered = false;
+
+    // Handle conditional Q10 sub-questions
+    if (isQ10ParentQuestion && showQ10SubQuestions) {
+      const subQuestion = currentQuestionObject.conditionalQuestions[q10SubQuestionIndex];
+      isAnswered = answers[subQuestion.id] !== undefined && answers[subQuestion.id] !== null;
+      if (subQuestion.type === 'options-with-text' && answers[subQuestion.id] === 3) {
+        if (!answers[`${subQuestion.id}_text`] || answers[`${subQuestion.id}_text`].trim() === '') {
+          isAnswered = false; // Require text input if option '3' is selected
+        }
+      }
+    } else {
+      // Handle regular questions
+      isAnswered = answers[currentQuestionObject.id] !== undefined && answers[currentQuestionObject.id] !== null;
+      if (currentQuestionObject.type === 'options-with-text' && answers[currentQuestionObject.id] === 3) {
+        if (!answers[`${currentQuestionObject.id}_text`] || answers[`${currentQuestionObject.id}_text`].trim() === '') {
+          isAnswered = false; // Require text input if option '3' is selected
+        }
+      } else if (currentQuestionObject.type === 'time' && (!answers[currentQuestionObject.id] || !/^\d{2}:\d{2}$/.test(answers[currentQuestionObject.id]))) {
+        isAnswered = false; // Require HH:MM format for time inputs
+      }
+    }
+
+    if (!isAnswered) {
+      Alert.alert("Pilihan Dibutuhkan", "Silakan pilih salah satu opsi atau isi teks/format waktu dengan benar sebelum melanjutkan.");
       return;
     }
 
+    // Progression logic for Q10 conditional flow
+    if (isQ10ParentQuestion) {
+      if (answers[currentQuestionObject.id] === 'no_partner') {
+        // If "no_partner" selected, directly move past all Q10 logic
+        // This will make `currentQuestionIndex` point to beyond the array if Q10 was last.
+        setCurrentQuestionIndex(psqiQuestions.length); // Move past Q10
+      } else if (showQ10SubQuestions) {
+        // If showing sub-questions, check if there are more
+        if (q10SubQuestionIndex < currentQuestionObject.conditionalQuestions.length - 1) {
+          setQ10SubQuestionIndex(q10SubQuestionIndex + 1);
+          return; // Stay on Q10 parent, but move to next sub-question
+        } else {
+          // All Q10 sub-questions answered, move to next main question
+          setShowQ10SubQuestions(false); // Hide sub-questions
+          setQ10SubQuestionIndex(0); // Reset for next time
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        }
+      } else {
+        // If Q10_has_partner selected 'yes' but sub-questions not started
+        setShowQ10SubQuestions(true);
+        setQ10SubQuestionIndex(0);
+        return;
+      }
+    }
+
+    // Original logic for moving to next question or results
+    // This part should only execute if not handled by Q10 specific logic above
     if (currentQuestionIndex < psqiQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Pertanyaan terakhir, hitung skor dan navigasi
-      const { totalScore, category, advice } = calculatePSQIScoreAndCategory(answers);
-      
-      // Simpan ke database (jika perlu)
-      // try {
-      //   const db = await getDBConnection();
-      //   await addAssessmentResult(db, 'PSQI', totalScore, category, advice, JSON.stringify(answers));
-      //   console.log('PSQI result saved');
-      // } catch (error) {
-      //   console.error('Failed to save PSQI result', error);
-      // }
+      // All questions (including Q10 sub-questions if applicable) are answered
+      const score = calculatePsqiScore();
+      const { category, advice } = getPsqiCategoryAndAdvice(score);
 
-      navigation.navigate('PSQIResult', { // Buat screen PSQIResult
-        score: totalScore,
+      navigation.navigate('PSQIResult', {
+        score,
         category,
         advice,
-        fullAnswers: answers, // Kirim semua jawaban mentah jika perlu
+        answers: answers,
       });
     }
   };
 
+
   const handleKembali = () => {
-    if (currentQuestionIndex > 0) {
+    if (isQ10ParentQuestion && showQ10SubQuestions && q10SubQuestionIndex > 0) {
+      // Go back to previous Q10 sub-question
+      setQ10SubQuestionIndex(q10SubQuestionIndex - 1);
+    } else if (isQ10ParentQuestion && showQ10SubQuestions && q10SubQuestionIndex === 0) {
+      // If at first Q10 sub-question, go back to Q10 parent selection
+      setShowQ10SubQuestions(false);
+      // currentInput will be updated by useEffect
+    } else if (currentQuestionIndex > 0) {
+      // Go back to previous main question
       setCurrentQuestionIndex(currentQuestionIndex - 1);
+      // If previous question was Q10 and user said 'yes', re-show sub-questions
+      const prevQuestion = psqiQuestions[currentQuestionIndex - 1];
+      if (prevQuestion && prevQuestion.id === 'Q10_has_partner' && answers['Q10_has_partner'] !== 'no_partner') {
+        setShowQ10SubQuestions(true);
+        // Set Q10 sub-question index to its last answered position or 0
+        const q10ConditionalQuestions = prevQuestion.conditionalQuestions;
+        let lastAnsweredSubQIndex = 0;
+        for (let i = q10ConditionalQuestions.length - 1; i >= 0; i--) {
+          if (answers[q10ConditionalQuestions[i].id] !== undefined) {
+            lastAnsweredSubQIndex = i;
+            break;
+          }
+        }
+        setQ10SubQuestionIndex(lastAnsweredSubQIndex);
+      }
     } else {
-      navigation.goBack();
+      navigation.goBack(); // Go back to previous screen if on the very first question
     }
   };
 
-  const progress = ((currentQuestionIndex + 1) / psqiQuestions.length) * 100;
+  // Calculate progress based on main questions, and conditionally for Q10 sub-questions
+  const totalMainQuestions = psqiQuestions.length;
+  const totalQ10SubQuestions = (psqiQuestions[totalMainQuestions - 1].conditionalQuestions || []).length;
+  let totalTrackedQuestions = totalMainQuestions;
+  let answeredCountForProgress = Object.keys(answers).filter(key => answers[key] !== null).length;
 
-  // --- Render Fungsi untuk Berbagai Tipe Input ---
-  const renderInputType = () => {
-    if (currentQuestion.type === 'number_picker') {
-      const { min, max } = currentQuestion.options;
-      const displayValues = [];
-      for (let i = Math.max(0, currentNumberPickerValue - 2); i <= Math.min(max, currentNumberPickerValue + 2); i += (currentQuestion.options.step || 1)) {
-          // Pastikan tidak melebihi min dan max
-          if (i >= min && i <= max) {
-            displayValues.push(i);
-          }
-      }
-      // Jika displayValues kurang dari 5, coba tambahkan dari sekitar picker value
-      // Ini hanya untuk UI, logika utamanya ada di handleNumberPickerChange
+  if (answers['Q10_has_partner'] === 'no_partner') {
+      // If "no_partner" was selected, we treat Q10 as answered and its sub-questions are skipped.
+      totalTrackedQuestions = totalMainQuestions - totalQ10SubQuestions + 1; // Main Qs minus Q10 subs plus Q10 parent itself
+      // Ensure answeredCountForProgress doesn't count Q10 sub-questions if they were previously answered but now skipped
+      Object.keys(answers).forEach(key => {
+        if (key.startsWith('Q10') && key !== 'Q10_has_partner' && answers['Q10_has_partner'] === 'no_partner') {
+          answeredCountForProgress--;
+        }
+      });
+  } else if (answers['Q10_has_partner'] && answers['Q10_has_partner'] !== 'no_partner') {
+      // If Q10 parent is answered 'yes', include sub-questions in total.
+      totalTrackedQuestions = totalMainQuestions + totalQ10SubQuestions - 1; // All main Qs + Q10 sub Qs - Q10 parent itself
+  }
 
+
+  const progress = (answeredCountForProgress / totalTrackedQuestions) * 100;
+
+  // IMPORTANT: Ensure currentQuestion is defined before accessing its properties in render
+  if (!currentQuestion) {
+      // This state means all questions are answered, and we are about to navigate.
+      // Or, an error occurred in logic, preventing currentQuestion from being set.
+      // We can render a loading/blank screen or directly navigate if we are sure all questions are done.
+      // In this case, the `handleLanjutkan` logic should prevent reaching this state
+      // if all questions aren't truly answered before navigating.
+      // For now, return null to prevent error, or a simple placeholder.
       return (
-        <View style={styles.numberPickerContainer}>
-            <TouchableOpacity onPress={() => handleNumberPickerChange(currentNumberPickerValue - (currentQuestion.options.step || 1))} disabled={currentNumberPickerValue <= min}>
-                <Icon name="chevron-up" size={50} color={currentNumberPickerValue <= min ? '#BDBDBD' : '#00695C'} />
-            </TouchableOpacity>
-            <Text style={styles.numberPickerValueAroundSmall}>{currentNumberPickerValue > min ? (currentNumberPickerValue - (currentQuestion.options.step || 1)).toFixed(currentQuestion.options.step === 0.5 ? 1 : 0) : ' '}</Text>
-            <View style={styles.numberPickerHighlight}>
-                <Text style={styles.numberPickerValueBesar}>
-                    {currentNumberPickerValue.toFixed(currentQuestion.options.step === 0.5 ? 1 : 0)}
-                </Text>
-            </View>
-            <Text style={styles.numberPickerValueAroundSmall}>{currentNumberPickerValue < max ? (currentNumberPickerValue + (currentQuestion.options.step || 1)).toFixed(currentQuestion.options.step === 0.5 ? 1 : 0) : ' '}</Text>
-            <TouchableOpacity onPress={() => handleNumberPickerChange(currentNumberPickerValue + (currentQuestion.options.step || 1))} disabled={currentNumberPickerValue >= max}>
-                <Icon name="chevron-down" size={50} color={currentNumberPickerValue >= max ? '#BDBDBD' : '#00695C'} />
-            </TouchableOpacity>
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.loadingContainer}>
+            <Text>Menyiapkan hasil...</Text>
+          </View>
+        </SafeAreaView>
       );
-    } 
-    else if (currentQuestion.type === 'single_choice') {
+  }
+
+
+  const renderQuestionContent = () => {
+    if (currentQuestion.type === 'options' || currentQuestion.type === 'options-with-text') {
       return (
         <View style={styles.optionsContainer}>
           {currentQuestion.options.map((option) => (
@@ -279,83 +637,120 @@ export default function PSQIScreen({ navigation }) {
               key={option.value}
               style={[
                 styles.optionItem,
-                answers[currentQuestion.id] === option.value && styles.optionItemSelected
+                currentInput === option.value && styles.optionItemSelected
               ]}
-              onPress={() => handleSelectOption(currentQuestion.id, option.value)}
+              onPress={() => handleSelectOption(option.value)}
             >
-              <Text 
+              <Text
                 style={[
-                  styles.optionText, 
-                  answers[currentQuestion.id] === option.value && styles.optionTextSelected
+                  styles.optionText,
+                  currentInput === option.value && styles.optionTextSelected
                 ]}
               >
                 {option.text}
               </Text>
-              <View 
+              <View
                 style={[
-                  styles.checkboxBase, 
-                  answers[currentQuestion.id] === option.value && styles.checkboxChecked
+                  styles.checkboxBase,
+                  currentInput === option.value && styles.checkboxChecked
                 ]}
               >
-                {answers[currentQuestion.id] === option.value && (
-                  <Icon name="check" size={16} color="white" />
+                {currentInput === option.value && (
+                  <Icon name="check" size={16} color="#508E82" />
                 )}
               </View>
             </TouchableOpacity>
           ))}
+          {currentQuestion.type === 'options-with-text' && currentInput === 3 && (
+            <TextInput
+              style={styles.textInput}
+              placeholder={currentQuestion.placeholder}
+              placeholderTextColor="#9E9E9E"
+              value={answers[`${currentQuestion.id}_text`] || ''}
+              onChangeText={(text) => setAnswers(prev => ({ ...prev, [`${currentQuestion.id}_text`]: text }))}
+              multiline
+              maxLength={250}
+            />
+          )}
         </View>
       );
+    } else if (currentQuestion.type === 'time') {
+      return (
+        <TextInput
+          style={styles.timeInput}
+          placeholder="HH:MM (Contoh: 22:30)"
+          placeholderTextColor="#9E9E9E"
+          keyboardType="numbers-and-punctuation"
+          value={currentInput || ''}
+          onChangeText={handleTextInput}
+          maxLength={5}
+        />
+      );
     }
-    // Tambahkan tipe input lain di sini (misal, time picker, text input)
-    return <Text>Tipe pertanyaan tidak didukung: {currentQuestion.type}</Text>;
+    return null;
   };
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={handleKembali} style={styles.backButton}>
-          <Icon name="arrow-left" size={28} color="#333" />
-        </TouchableOpacity>
-        <View style={styles.progressBarOuter}>
-          <View style={[styles.progressBarInner, { width: `${progress}%` }]} />
-        </View>
-        <View style={{width: 28}} />
-      </View>
-
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.scrollContentContainer}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.questionText}>{currentQuestion.text}</Text>
-        {currentQuestion.subtext && <Text style={styles.questionSubtext}>{currentQuestion.subtext}</Text>}
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={handleKembali} style={styles.backButton}>
+            <Icon name="arrow-left" size={28} color="#333" />
+          </TouchableOpacity>
+          <View style={styles.progressBarOuter}>
+            <View style={[styles.progressBarInner, { width: `${progress}%` }]} />
+          </View>
+          <View style={{ width: 28 }} />
+        </View>
 
-        {renderInputType()}
-        
-        <View style={styles.spacer} />
-      </ScrollView>
-
-      <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity 
-            style={[styles.actionButton, (answers[currentQuestion.id] === undefined || answers[currentQuestion.id] === null) && styles.disabledButton]} 
-            onPress={handleLanjutkan}
-            disabled={(answers[currentQuestion.id] === undefined || answers[currentQuestion.id] === null)}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContentContainer}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.actionButtonText}>
-            {currentQuestionIndex === psqiQuestions.length - 1 ? 'Lihat Hasil' : 'Lanjutkan'}
-          </Text>
-          <Icon name="arrow-right" size={20} color="white" style={{marginLeft: 8}}/>
-        </TouchableOpacity>
-      </View>
+          <Text style={styles.questionText}>{currentQuestion.text}</Text>
+
+          {renderQuestionContent()}
+
+          <View style={styles.spacer} />
+
+        </ScrollView>
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              (currentInput === null ||
+               (currentQuestion.type === 'options-with-text' && currentInput === 3 && (!answers[`${currentQuestion.id}_text`] || answers[`${currentQuestion.id}_text`].trim() === '')) ||
+               (currentQuestion.type === 'time' && (!currentInput || !/^\d{2}:\d{2}$/.test(currentInput)))) &&
+              styles.disabledButton
+            ]}
+            onPress={handleLanjutkan}
+            disabled={
+              currentInput === null ||
+              (currentQuestion.type === 'options-with-text' && currentInput === 3 && (!answers[`${currentQuestion.id}_text`] || answers[`${currentQuestion.id}_text`].trim() === '')) ||
+              (currentQuestion.type === 'time' && (!currentInput || !/^\d{2}:\d{2}$/.test(currentInput)))
+            }
+          >
+            <Text style={styles.actionButtonText}>
+              {currentQuestionIndex === psqiQuestions.length - 1 && (!isQ10ParentQuestion || (isQ10ParentQuestion && answers['Q10_has_partner'] === 'no_partner') || (isQ10ParentQuestion && showQ10SubQuestions && q10SubQuestionIndex === psqiQuestions[currentQuestionIndex].conditionalQuestions.length - 1))
+                ? 'Lihat Hasil'
+                : 'Lanjutkan'}
+            </Text>
+            <Icon name="arrow-right" size={20} color="white" style={{ marginLeft: 8 }} />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-// Styles disesuaikan dengan UI baru
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F0F2F5', // Latar abu-abu muda
+    backgroundColor: '#F4F6F8',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headerContainer: {
@@ -364,7 +759,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#F0F2F5',
+    backgroundColor: '#F4F6F8',
   },
   backButton: {
     padding: 5,
@@ -372,14 +767,14 @@ const styles = StyleSheet.create({
   progressBarOuter: {
     flex: 1,
     height: 8,
-    backgroundColor: '#D1D9E6', // Track progress bar lebih soft
+    backgroundColor: '#E0E0E0',
     borderRadius: 4,
     marginHorizontal: 15,
     overflow: 'hidden',
   },
   progressBarInner: {
     height: '100%',
-    backgroundColor: '#00695C', // Warna hijau Maseh
+    backgroundColor: '#00695C',
     borderRadius: 4,
   },
   scrollView: {
@@ -388,56 +783,18 @@ const styles = StyleSheet.create({
   scrollContentContainer: {
     flexGrow: 1,
     paddingHorizontal: 25,
-    paddingTop: 30, // Jarak dari header ke pertanyaan
+    paddingTop: 20,
     paddingBottom: 20,
   },
   questionText: {
-    fontSize: 24, // Font lebih besar
+    fontSize: 22,
     fontWeight: '600',
     color: '#263238',
-    marginBottom: 10, // Jarak ke subtext atau opsi
-    lineHeight: 32,
+    marginBottom: 30,
+    lineHeight: 30,
   },
-  questionSubtext: {
-    fontSize: 14,
-    color: '#546E7A',
-    marginBottom: 30, // Jarak ke opsi
-    lineHeight: 20,
-  },
-  // Styles untuk Number Picker (Q4)
-  numberPickerContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  numberPickerValueBesar: {
-    fontSize: 72, // Ukuran angka utama besar
-    fontWeight: 'bold',
-    color: '#00695C', // Warna hijau Maseh
-    marginVertical: 5, // Sedikit jarak
-  },
-  numberPickerHighlight: { // Kotak pembungkus angka besar
-    backgroundColor: '#FFFFFF', // Latar putih
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 15, // Sudut membulat
-    borderWidth: 3,
-    borderColor: '#B2DFDB', // Border hijau muda
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    minWidth: 120, // Lebar minimal
-    alignItems: 'center',
-  },
-  numberPickerValue周辺Kecil: { // Angka di atas dan bawah (lebih kecil)
-    fontSize: 36,
-    color: '#78909C', // Warna abu-abu
-    opacity: 0.7,
-  },
-  // Styles untuk Opsi Pilihan Tunggal (Q5, Q6, dll.)
   optionsContainer: {
-    marginTop: 10,
+    // No specific styles needed, child items are styled
   },
   optionItem: {
     flexDirection: 'row',
@@ -445,19 +802,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingVertical: 18,
-    paddingHorizontal: 20, // Padding lebih
+    paddingHorizontal: 15,
     borderRadius: 12,
     marginBottom: 12,
-    borderWidth: 1.5, // Border sedikit lebih tebal
-    borderColor: '#CFD8DC', // Warna border default
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   optionItemSelected: {
-    backgroundColor: '#00695C', // Warna hijau Maseh saat dipilih
-    borderColor: '#004D40', // Border lebih gelap saat dipilih
+    backgroundColor: '#00695C',
+    borderColor: '#00695C',
   },
   optionText: {
     fontSize: 16,
-    color: '#37474F',
+    color: '#333333',
     flex: 1,
   },
   optionTextSelected: {
@@ -465,18 +822,42 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   checkboxBase: {
-    width: 26, // Checkbox lebih besar sedikit
-    height: 26,
-    borderRadius: 6, // Sudut lebih membulat
+    width: 24,
+    height: 24,
+    borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#90A4AE',
+    borderColor: '#B0BEC5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 15,
+    marginLeft: 10,
   },
   checkboxChecked: {
-    backgroundColor: '#black', // Latar putih agar ikon check terlihat
-    borderColor: '#FFFFFF', // Border putih
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  textInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333333',
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  timeInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 12,
   },
   spacer: {
     flex: 1,
@@ -484,9 +865,9 @@ const styles = StyleSheet.create({
   bottomButtonContainer: {
     paddingHorizontal: 25,
     paddingVertical: 15,
-    backgroundColor: '#F0F2F5', // Samakan dengan latar utama
+    backgroundColor: '#F4F6F8',
     borderTopWidth: 1,
-    borderTopColor: '#CFD8DC', // Garis pemisah lebih soft
+    borderTopColor: '#E0E0E0',
   },
   actionButton: {
     backgroundColor: '#00695C',
@@ -495,7 +876,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    marginBottom: 35,
   },
   actionButtonText: {
     color: 'white',
@@ -503,6 +883,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   disabledButton: {
-    backgroundColor: '#B2DFDB', // Warna hijau Maseh lebih muda saat disabled
+    backgroundColor: '#A5D6A7',
   },
 });

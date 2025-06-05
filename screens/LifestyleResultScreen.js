@@ -17,14 +17,14 @@ import { addAssessmentResult } from '../database/database.js'; // Pastikan path 
 
 // Ganti dengan path gambar LATAR BELAKANG BERPOLA GELAP Anda
 // Anda bisa menggunakan gambar yang sama dengan layar hasil lainnya atau buat yang baru
-const BACKGROUND_HASIL_GELAP = require('../assets/images/Panduan.png'); 
+const BACKGROUND_HASIL_GELAP = require('../assets/images/Panduan.png');
 // Logo untuk header (mungkin versi terang jika latar gelap)
 const LOGO_HEADER_HASIL = require('../assets/images/Layer 2.png'); // Ganti dengan logo yang kontras
 
 export default function LifestyleResultScreen({ route, navigation }) {
   // Ambil data dari route.params. Pastikan LifestyleScreen mengirimkan parameter ini.
   const { score, category, advice, answers } // 'answers' adalah semua jawaban mentah dari Lifestyle
-    = route.params || {}; 
+    = route.params || {};
 
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
@@ -69,26 +69,20 @@ export default function LifestyleResultScreen({ route, navigation }) {
               resizeMode="contain"
             />
           </View>
-
-          <View style={styles.scoreContainer}>
-            <Text style={styles.scoreTitle}>Skor Gaya Hidup Anda</Text>
-            <Text style={styles.scoreValue}>{score ?? 'N/A'}</Text>
-          </View>
-
-          <View style={styles.resultCard}>
-            <Text style={styles.cardTitle}>Kategori Gaya Hidup</Text>
-            <Text style={styles.cardContent}>
+          <View style={styles.categoryCard}>
+            <Text style={styles.categoryTitle}>Kategori Gaya Hidup Anda</Text> 
+            <Text style={styles.categoryContent}>
               {category ?? 'Kategori tidak tersedia'}
             </Text>
           </View>
 
           <View style={styles.resultCard}>
-            <Text style={styles.cardTitle}>Saran Untuk Anda</Text>
+            <Text style={styles.cardTitle}>Saran Untuk Gaya Hidup Anda</Text>
             <Text style={styles.cardContent}>
               {advice ?? 'Saran tidak tersedia.'}
             </Text>
           </View>
-          
+
           <TouchableOpacity
             style={[styles.actionButton, styles.saveButton, hasSaved && styles.disabledButton]}
             onPress={handleSaveResult}
@@ -136,7 +130,8 @@ const styles = StyleSheet.create({
     width: 160,
     height: 55,
   },
-  scoreContainer: {
+  // scoreContainer dihapus dari render, tapi stylenya bisa tetap ada jika di tempat lain masih pakai
+  scoreContainer: { // Tetap pertahankan style ini jika ada komponen lain yang masih menggunakannya
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 15,
     paddingVertical: 20,
@@ -161,7 +156,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  resultCard: {
+  categoryCard: { // Style baru untuk menonjolkan kategori
+    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Latar belakang semi-transparan terang
+    borderRadius: 15,
+    paddingVertical: 30, // Lebih besar
+    paddingHorizontal: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 25, // Jarak ke elemen berikutnya
+    width: '90%', // Lebih lebar
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  categoryTitle: { // Menonjolkan judul kategori
+    fontSize: 26, // Ukuran font lebih besar
+    fontWeight: 'bold',
+    color: '#FFFFFF', // Teks putih
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  categoryContent: { // Menonjolkan konten kategori
+    fontSize: 28, // Ukuran font lebih besar lagi
+    fontWeight: 'bold',
+    color: '#FFFFFF', // Teks putih
+    textAlign: 'center',
+    lineHeight: 36, // Jarak baris
+  },
+  resultCard: { // Ini adalah style untuk saran, sama seperti sebelumnya
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
     borderRadius: 15,
     padding: 20,

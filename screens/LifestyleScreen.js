@@ -12,78 +12,159 @@ import {
   ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-// import { getDBConnection, addAssessmentResult } from '../database/database.js'; // Jika ingin menyimpan hasil
 
-// --- Definisi Pertanyaan dan Opsi untuk Gaya Hidup ---
-// INI HANYA CONTOH, GANTI DENGAN PERTANYAAN & OPSI ANDA YANG SEBENARNYA
+// --- Definisi Pertanyaan & Opsi yang Diringkas untuk Gaya Hidup ---
+// Setiap opsi diberi nilai score dari 0 (paling buruk/tidak sehat) sampai 4 (paling baik/sehat).
+// Pertanyaan dan opsi disarikan dari "Fantastic Lifestyle Checklist" PDF.
 const lifestyleQuestions = [
   {
-    id: 'LS1',
-    text: "Seberapa sering Anda mengonsumsi buah dan sayuran (minimal 5 porsi) dalam sehari?",
+    id: 'LS_FF1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda merasa memiliki seseorang untuk diajak bicara dan Anda memberi/menerima kasih sayang?",
     options: [
-      { text: "Hampir setiap hari (5-7 hari/minggu)", value: 3 }, // Skor tertinggi untuk kebiasaan baik
-      { text: "Sering (3-4 hari/minggu)", value: 2 },
-      { text: "Kadang-kadang (1-2 hari/minggu)", value: 1 },
-      { text: "Jarang atau tidak pernah", value: 0 },
+      { text: "Hampir tidak pernah", value: 0 },
+      { text: "Jarang", value: 1 },
+      { text: "Kadang-kadang", value: 2 },
+      { text: "Cukup sering", value: 3 },
+      { text: "Hampir selalu", value: 4 },
     ],
   },
   {
-    id: 'LS2',
-    text: "Seberapa sering Anda melakukan aktivitas fisik/olahraga minimal 30 menit?",
+    id: 'LS_ACT1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda aktif secara fisik (misalnya olahraga berat 30 menit, atau aktivitas sedang seperti berjalan/berkebun) ?",
     options: [
-      { text: "5 kali atau lebih per minggu", value: 3 },
-      { text: "3-4 kali per minggu", value: 2 },
-      { text: "1-2 kali per minggu", value: 1 },
-      { text: "Kurang dari sekali seminggu / tidak pernah", value: 0 },
+      { text: "Kurang dari 3 kali seminggu", value: 0 },
+      { text: "3 kali seminggu", value: 1 }, // Asumsi 3x/minggu sudah cukup baik untuk dasar
+      { text: "4 kali seminggu", value: 2 },
+      { text: "5 kali seminggu", value: 3 },
+      { text: "Lebih dari 5 kali seminggu", value: 4 },
     ],
   },
   {
-    id: 'LS3',
-    text: "Berapa rata-rata jam tidur Anda per malam?",
+    id: 'LS_NUT1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda makan makanan yang seimbang (sesuai panduan gizi)?",
     options: [
-      { text: "7-8 jam (Cukup)", value: 3 },
-      { text: "6 jam", value: 2 },
-      { text: "5 jam", value: 1 },
-      { text: "Kurang dari 5 jam atau lebih dari 9 jam", value: 0 },
+      { text: "Hampir tidak pernah", value: 0 },
+      { text: "Jarang", value: 1 },
+      { text: "Kadang-kadang", value: 2 },
+      { text: "Cukup sering", value: 3 },
+      { text: "Hampir selalu", value: 4 },
     ],
   },
   {
-    id: 'LS4',
-    text: "Seberapa sering Anda mengonsumsi minuman manis atau makanan cepat saji (junk food)?",
+    id: 'LS_TOX1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda mengonsumsi gula berlebih, garam berlebih, lemak hewani, atau makanan cepat saji?",
     options: [
-      { text: "Jarang atau tidak pernah", value: 3 }, // Skor tertinggi untuk kebiasaan baik
-      { text: "Kadang-kadang (1-2 kali/minggu)", value: 2 },
-      { text: "Sering (3-4 kali/minggu)", value: 1 },
-      { text: "Hampir setiap hari", value: 0 },
+      { text: "Hampir setiap hari (4 kategori)", value: 0 }, // Paling buruk
+      { text: "Sering (2-3 kategori)", value: 1 },
+      { text: "Kadang-kadang (1 kategori)", value: 2 },
+      { text: "Jarang/Tidak sama sekali", value: 4 }, // Paling baik
     ],
   },
   {
-    id: 'LS5',
-    text: "Bagaimana Anda menilai tingkat stres Anda secara umum dalam sebulan terakhir?",
+    id: 'LS_TOX2',
+    text: "Dalam sebulan terakhir, seberapa sering Anda menggunakan tembakau, narkoba (seperti ganja/kokain), atau obat resep/bebas secara berlebihan?",
     options: [
-      { text: "Sangat rendah / terkendali", value: 3 },
-      { text: "Rendah", value: 2 },
-      { text: "Sedang", value: 1 },
-      { text: "Tinggi / sangat tinggi", value: 0 },
+      { text: "Sering menggunakan lebih dari satu", value: 0 }, // Paling buruk
+      { text: "Kadang-kadang menggunakan satu", value: 1 },
+      { text: "Jarang menggunakan satu", value: 2 },
+      { text: "Hampir tidak pernah menggunakan", value: 3 },
+      { text: "Tidak pernah menggunakan", value: 4 }, // Paling baik
     ],
   },
-  // Tambahkan lebih banyak pertanyaan gaya hidup sesuai kebutuhan
+  {
+    id: 'LS_ALC1',
+    text: "Dalam sebulan terakhir, bagaimana asupan alkohol Anda per minggu atau per kesempatan?",
+    options: [
+      { text: "Lebih dari 20 minuman/minggu atau >4 minuman sering", value: 0 }, // Paling buruk
+      { text: "13-20 minuman/minggu atau >4 minuman kadang-kadang", value: 1 },
+      { text: "8-12 minuman/minggu atau >4 minuman jarang", value: 2 },
+      { text: "0-7 minuman/minggu dan jarang >4 minuman", value: 3 },
+      { text: "Tidak minum alkohol sama sekali", value: 4 }, // Paling baik
+    ],
+  },
+  {
+    id: 'LS_SLP1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda tidur nyenyak dan merasa segar?",
+    options: [
+      { text: "Hampir tidak pernah", value: 0 },
+      { text: "Jarang", value: 1 },
+      { text: "Kadang-kadang", value: 2 },
+      { text: "Cukup sering", value: 3 },
+      { text: "Hampir selalu", value: 4 },
+    ],
+  },
+  {
+    id: 'LS_STB1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda menggunakan sabuk pengaman?",
+    options: [
+      { text: "Tidak pernah", value: 0 },
+      { text: "Jarang", value: 1 },
+      { text: "Kadang-kadang", value: 2 },
+      { text: "Sering", value: 3 },
+      { text: "Selalu", value: 4 },
+    ],
+  },
+  {
+    id: 'LS_STR1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda mampu mengatasi stres dalam hidup dan menikmati waktu luang?",
+    options: [
+      { text: "Hampir tidak pernah", value: 0 },
+      { text: "Jarang", value: 1 },
+      { text: "Kadang-kadang", value: 2 },
+      { text: "Cukup sering", value: 3 },
+      { text: "Hampir selalu", value: 4 },
+    ],
+  },
+  {
+    id: 'LS_BEH1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda merasa terburu-buru, marah/bermusuhan, atau tegang/cemas?",
+    options: [
+      { text: "Hampir selalu (3 kategori)", value: 0 }, // Paling buruk
+      { text: "Sering (2-3 kategori)", value: 1 },
+      { text: "Kadang-kadang (1 kategori)", value: 2 },
+      { text: "Jarang/Tidak sama sekali", value: 4 }, // Paling baik
+    ],
+  },
+  {
+    id: 'LS_INS1',
+    text: "Dalam sebulan terakhir, seberapa sering Anda adalah pemikir yang positif/optimis dan tidak merasa sedih/depresi?",
+    options: [
+      { text: "Hampir tidak pernah positif dan sering depresi", value: 0 }, // Paling buruk
+      { text: "Jarang positif dan kadang depresi", value: 1 },
+      { text: "Kadang-kadang positif dan jarang depresi", value: 2 },
+      { text: "Cukup sering positif dan hampir tidak pernah depresi", value: 3 },
+      { text: "Hampir selalu positif dan tidak pernah depresi", value: 4 }, // Paling baik
+    ],
+  },
+  {
+    id: 'LS_CAR1',
+    text: "Dalam sebulan terakhir, seberapa puas Anda dengan pekerjaan atau peran Anda?",
+    options: [
+      { text: "Hampir tidak pernah", value: 0 },
+      { text: "Jarang", value: 1 },
+      { text: "Kadang-kadang", value: 2 },
+      { text: "Cukup sering", value: 3 },
+      { text: "Hampir selalu", value: 4 },
+    ],
+  },
 ];
 
-// --- Fungsi Interpretasi Skor Gaya Hidup ---
-// INI HANYA CONTOH, GANTI DENGAN SKEMA PENILAIAN ANDA
+
+// --- Fungsi Interpretasi Skor Gaya Hidup (Disesuaikan untuk Pertanyaan Diringkas) ---
 const getLifestyleCategoryAndAdvice = (score, totalQuestions = lifestyleQuestions.length) => {
-  const maxPossibleScore = totalQuestions * 3; // Asumsi skor tertinggi per pertanyaan adalah 3
+  const maxPossibleScore = totalQuestions * 4;
   const percentage = (score / maxPossibleScore) * 100;
 
-  if (percentage >= 80) { // 80-100%
-    return { category: 'Sangat Baik', advice: 'Gaya hidup Anda sangat baik! Pertahankan kebiasaan sehat ini untuk kesejahteraan jangka panjang.' };
-  } else if (percentage >= 60) { // 60-79%
-    return { category: 'Baik', advice: 'Gaya hidup Anda sudah cukup baik. Ada beberapa area kecil yang bisa ditingkatkan untuk hasil yang lebih optimal.' };
-  } else if (percentage >= 40) { // 40-59%
-    return { category: 'Cukup', advice: 'Gaya hidup Anda perlu beberapa perbaikan. Fokus pada peningkatan konsumsi makanan sehat, aktivitas fisik, dan manajemen stres.' };
-  } else { // < 40%
-    return { category: 'Perlu Perbaikan Signifikan', advice: 'Gaya hidup Anda memerlukan perhatian lebih. Sangat disarankan untuk membuat perubahan signifikan pada pola makan, aktivitas fisik, dan manajemen stres. Pertimbangkan untuk berkonsultasi dengan ahli gizi atau profesional kesehatan.' };
+  if (percentage >= 85) { // 85-100%
+    return { category: 'EXCELLENT', advice: 'Gaya hidup Anda sangat baik! Pertahankan kebiasaan sehat ini untuk kesejahteraan jangka panjang. Teruslah bekerja keras untuk mencapai gaya hidup yang lebih baik.' }; // <--- Pastikan string 'advice' ini lengkap dan ditutup dengan benar
+  } else if (percentage >= 70) { // 70-84%
+    return { category: 'VERY GOOD', advice: 'Gaya hidup Anda sudah sangat baik. Teruslah berusaha untuk mencapai keunggulan. Ada beberapa area kecil yang bisa ditingkatkan untuk hasil yang lebih optimal.' };
+  } else if (percentage >= 55) { // 55-69%
+    return { category: 'GOOD', advice: 'Gaya hidup Anda baik. Ada beberapa area yang bisa Anda tingkatkan. Perhatikan area-area di mana Anda mendapat skor rendah.' };
+  } else if (percentage >= 35) { // 35-54%
+    return { category: 'FAIR', advice: 'Gaya hidup Anda perlu beberapa perbaikan. Fokus pada peningkatan konsumsi makanan sehat, aktivitas fisik, dan manajemen stres. Mulailah dengan langkah kecil.' };
+  } else { // 0-34%
+    return { category: 'NEEDS IMPROVEMENT', advice: 'Gaya hidup Anda memerlukan perbaikan yang serius. Sangat disarankan untuk membuat perubahan signifikan pada pola makan, aktivitas fisik, dan manajemen stres. Pertimbangkan untuk berkonsultasi dengan ahli gizi atau profesional kesehatan. Ingat, selalu ada kesempatan untuk mengubah gaya hidup Anda - mulai sekarang.' };
   }
 };
 
@@ -107,10 +188,11 @@ export default function LifestyleScreen({ navigation }) {
   };
 
   const calculateScore = () => {
+    // Menghitung skor total berdasarkan nilai yang ditetapkan di 'value' setiap opsi
     return answers.reduce((acc, val) => acc + (val !== null ? val : 0), 0);
   };
 
-  const handleLanjutkan = async () => { // Jadikan async jika akan menyimpan ke DB
+  const handleLanjutkan = () => {
     if (selectedOptionValue === null && answers[currentQuestionIndex] === null) {
       Alert.alert("Pilihan Dibutuhkan", "Silakan pilih salah satu opsi sebelum melanjutkan.");
       return;
@@ -119,26 +201,11 @@ export default function LifestyleScreen({ navigation }) {
     if (currentQuestionIndex < lifestyleQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
+      // Pertanyaan terakhir, submit
       const score = calculateScore();
       const { category, advice } = getLifestyleCategoryAndAdvice(score, lifestyleQuestions.length);
 
-      // // Simpan ke database (Uncomment dan sesuaikan jika perlu)
-      // try {
-      //   // const db = await getDBConnection(); // Tidak perlu jika addAssessmentResult memanggilnya internal
-      //   await addAssessmentResult(
-      //     'Lifestyle', // Tipe asesmen
-      //     score,
-      //     category,
-      //     advice,
-      //     JSON.stringify(answers) // Simpan jawaban individual
-      //   );
-      //   console.log('Lifestyle result saved to database.');
-      // } catch (error) {
-      //   console.error('Failed to save Lifestyle result:', error);
-      //   Alert.alert('Error', 'Gagal menyimpan hasil tes ke database.');
-      // }
-
-      navigation.navigate('LifestyleResult', { // Buat screen LifestyleResult
+      navigation.navigate('LifestyleResult', {
         score,
         category,
         advice,
@@ -169,8 +236,8 @@ export default function LifestyleScreen({ navigation }) {
         <View style={{width: 28}} />
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContentContainer}
         keyboardShouldPersistTaps="handled"
       >
@@ -179,41 +246,41 @@ export default function LifestyleScreen({ navigation }) {
         <View style={styles.optionsContainer}>
           {currentQuestion.options.map((option) => (
             <TouchableOpacity
-              key={option.value} // Pastikan value unik per set opsi pertanyaan
+              key={option.value}
               style={[
                 styles.optionItem,
                 selectedOptionValue === option.value && styles.optionItemSelected
               ]}
               onPress={() => handleSelectOption(option.value)}
             >
-              <Text 
+              <Text
                 style={[
-                  styles.optionText, 
+                  styles.optionText,
                   selectedOptionValue === option.value && styles.optionTextSelected
                 ]}
               >
                 {option.text}
               </Text>
-              <View 
+              <View
                 style={[
-                  styles.checkboxBase, 
+                  styles.checkboxBase,
                   selectedOptionValue === option.value && styles.checkboxChecked
                 ]}
               >
                 {selectedOptionValue === option.value && (
-                  <Icon name="check" size={16} color="#00695C" /> // Warna check disesuaikan
+                  <Icon name="check" size={16} color="#00695C" />
                 )}
               </View>
             </TouchableOpacity>
           ))}
         </View>
-        
-        <View style={styles.spacer} /> 
+
+        <View style={styles.spacer} />
       </ScrollView>
 
       <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity 
-            style={[styles.actionButton, (selectedOptionValue === null && answers[currentQuestionIndex] === null) && styles.disabledButton]} 
+        <TouchableOpacity
+            style={[styles.actionButton, (selectedOptionValue === null && answers[currentQuestionIndex] === null) && styles.disabledButton]}
             onPress={handleLanjutkan}
             disabled={(selectedOptionValue === null && answers[currentQuestionIndex] === null)}
         >
@@ -227,51 +294,50 @@ export default function LifestyleScreen({ navigation }) {
   );
 }
 
-// Styles (sama persis dengan PHQ9Screen.js yang sudah Anda sesuaikan)
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F4F6F8', 
+    backgroundColor: '#F4F6F8',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#F4F6F8', 
+    backgroundColor: '#F4F6F8',
   },
   backButton: {
-    padding: 5, 
+    padding: 5,
   },
   progressBarOuter: {
-    flex: 1, 
-    height: 8, 
-    backgroundColor: '#E0E0E0', 
+    flex: 1,
+    height: 8,
+    backgroundColor: '#E0E0E0',
     borderRadius: 4,
-    marginHorizontal: 15, 
+    marginHorizontal: 15,
     overflow: 'hidden',
   },
   progressBarInner: {
     height: '100%',
-    backgroundColor: '#00695C', 
+    backgroundColor: '#00695C',
     borderRadius: 4,
   },
   scrollView: {
-    flex: 1, 
+    flex: 1,
   },
   scrollContentContainer: {
     flexGrow: 1,
     paddingHorizontal: 25,
-    paddingTop: 20, 
-    paddingBottom: 20, 
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   questionText: {
-    fontSize: 22, 
-    fontWeight: '600', 
-    color: '#263238', 
-    marginBottom: 30, 
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#263238',
+    marginBottom: 30,
     lineHeight: 30,
   },
   optionsContainer: {
@@ -280,58 +346,58 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
     paddingVertical: 18,
     paddingHorizontal: 15,
-    borderRadius: 12, 
-    marginBottom: 12, 
+    borderRadius: 12,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0', 
+    borderColor: '#E0E0E0',
   },
   optionItemSelected: {
-    backgroundColor: '#00695C', 
+    backgroundColor: '#00695C',
     borderColor: '#00695C',
   },
   optionText: {
     fontSize: 16,
     color: '#333333',
-    flex: 1, 
+    flex: 1,
   },
   optionTextSelected: {
-    color: '#FFFFFF', 
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   checkboxBase: {
     width: 24,
     height: 24,
-    borderRadius: 4, 
+    borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#B0BEC5', 
+    borderColor: '#B0BEC5',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 10,
   },
   checkboxChecked: {
-    backgroundColor: '#FFFFFF', 
-    borderColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
   },
-  spacer: { 
+  spacer: {
     flex: 1,
   },
-  bottomButtonContainer: { 
+  bottomButtonContainer: {
     paddingHorizontal: 25,
     paddingVertical: 15,
-    backgroundColor: '#F4F6F8', 
-    borderTopWidth: 1, 
+    backgroundColor: '#F4F6F8',
+    borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
   },
   actionButton: {
-    backgroundColor: '#00695C', 
+    backgroundColor: '#00695C',
     paddingVertical: 16,
-    borderRadius: 25, 
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row', 
+    flexDirection: 'row',
     marginBottom:35,
   },
   actionButtonText: {
@@ -340,6 +406,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   disabledButton: {
-    backgroundColor: '#A5D6A7', 
+    backgroundColor: '#A5D6A7',
   },
 });

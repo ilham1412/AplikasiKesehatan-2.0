@@ -15,7 +15,6 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getAppSetting } from '../database/database';
 
-// ... (const iconDepresi, iconTidur, dll. dan menuItems tetap sama) ...
 const iconDepresi = require('../assets/gambar/depression.png');
 const iconTidur = require('../assets/gambar/kualitas bobok.png');
 const iconGayaHidup = require('../assets/gambar/gaya hidup.png');
@@ -27,7 +26,6 @@ const menuItems = [
   { id: '3', title: 'Cek Gaya Hidup', image: iconGayaHidup, navigateTo: 'Panduan2'},
   { id: '4', title: 'Panduan Pertolongan Pertama', image: iconFirstAid, navigateTo: 'FirstAid'},
 ];
-
 
 export default function DashboardScreen({ navigation }) {
   const [userName, setUserName] = useState('');
@@ -44,17 +42,14 @@ export default function DashboardScreen({ navigation }) {
       }
     };
     fetchUserName();
-  // Jika Anda tidak menggunakan 'navigation' di dalam useEffect ini secara langsung
-  // untuk memicu pembaruan, Anda bisa menghapusnya dari array dependensi.
-  // }, [navigation]); 
-  }, []); // Array dependensi kosong jika hanya dijalankan sekali saat mount
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContentContainer} // Tambahkan ini
-        showsVerticalScrollIndicator={false} // Opsional: hilangkan scrollbar vertikal
+        contentContainerStyle={styles.scrollContentContainer}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           <Icon name="hand-wave-outline" size={30} color="#FFA726" style={styles.waveIcon} />
@@ -73,7 +68,9 @@ export default function DashboardScreen({ navigation }) {
                 <View style={styles.menuTextContainer}>
                     <Text style={styles.menuItemText}>{item.title}</Text>
                 </View>
-                <Image source={item.image} style={styles.menuItemImage} resizeMode="contain" />
+                <View style={styles.menuImageContainer}>
+                    <Image source={item.image} style={styles.menuItemImage} resizeMode="contain" />
+                </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -99,16 +96,13 @@ const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF', 
-    // paddingTop untuk status bar Android sebaiknya dihandle oleh ScrollView atau View konten utama jika footer benar-benar di luar SafeArea
-    // Namun, jika SafeAreaView membungkus semuanya, paddingTop di sini untuk Android sudah benar.
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scrollView: {
-    flex: 1, // Ini penting agar ScrollView mengambil ruang yang tersedia
+    flex: 1,
   },
-  scrollContentContainer: { // Style untuk konten di dalam ScrollView
-    paddingBottom: 20, // Beri ruang di bawah item menu terakhir
-                       // agar tidak terlalu mepet footer saat di-scroll penuh
+  scrollContentContainer: {
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -131,22 +125,23 @@ const styles = StyleSheet.create({
   menuItem: {
     backgroundColor: '#E0F2F1',
     borderRadius: 15,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'stretch', // Changed from 'center' to 'stretch'
     marginBottom: 15,
-    minHeight: 100,
+    height: 100, // Fixed height instead of minHeight
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+    overflow: 'hidden', // This ensures the image doesn't overflow the rounded corners
   },
   menuTextContainer: {
-      flex: 1,
-      marginRight: 10,
+    flex: 1,
+    paddingVertical: 15,
+    paddingLeft: 20,
+    paddingRight: 10,
+    justifyContent: 'center', // Center the text vertically
   },
   menuItemText: {
     fontSize: 17,
@@ -154,9 +149,16 @@ const styles = StyleSheet.create({
     color: '#004D40',
     flexShrink: 1,
   },
+  menuImageContainer: {
+    width: 100, // Fixed width for image container
+    height: '100%', // Full height of the card
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 10, // Small padding from right edge
+  },
   menuItemImage: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 100,
   },
   footerNav: {
     flexDirection: 'row',
@@ -165,21 +167,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-    
-    // --- COBA TINGKATKAN NILAI DI SINI ---
-    paddingTop: 10, // Padding atas untuk ikon di dalam footer
-    paddingBottom: Platform.OS === 'ios' ? 60 : 40, // Tingkatkan padding bawah (misal: iOS dari 30 ke 40, Android dari 10 ke 25)
-    // Atau, jika Anda ingin tinggi footer tetap, dan hanya ingin ikon lebih ke atas,
-    // Anda bisa mengatur height dan menggunakan justifyContent atau paddingTop yang lebih besar
-    // Untuk sekarang, kita coba dengan menambah paddingBottom.
-    // Anda juga bisa mencoba menambah height jika paddingBottom saja tidak cukup:
-    // height: Platform.OS === 'ios' ? 100 : 75, // Contoh peningkatan tinggi
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 60 : 40,
   },
   footerNavItem: {
-    flex: 1, // Agar setiap item mengambil ruang yang sama
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center', // Pusatkan ikon
-    paddingVertical: 10, // Beri padding vertikal pada item agar area sentuh lebih baik
-                         // Ini akan menambah tinggi efektif jika height footer tidak di-set eksplisit
+    justifyContent: 'center',
+    paddingVertical: 10,
   },
 });

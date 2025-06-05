@@ -21,11 +21,19 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "jsEngine": "jsc"
+      "jsEngine": "jsc",
+      "package": "com.ilham1412.AplikasiKesehatan"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-sqlite"]
+    "plugins": [
+      "expo-sqlite"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ee661e28-9374-49b7-91b1-3bb13c5fae2f"
+      }
+    }
   }
 }

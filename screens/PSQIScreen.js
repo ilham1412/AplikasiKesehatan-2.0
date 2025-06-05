@@ -857,7 +857,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: '#333333',
-    marginBottom: 12,
   },
   spacer: {
     flex: 1,
@@ -876,6 +875,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    marginBottom:10,
   },
   actionButtonText: {
     color: 'white',

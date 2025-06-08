@@ -69,10 +69,9 @@ export default function BantuanPertolonganPertamaScreen({ navigation }) {
     { label: 'Nomor telepon polisi', number: '110' },
     { label: 'Nomor telepon ambulans', number: '118 dan 119' },
     { label: 'Nomor telepon Badan Search and Rescue Nasional (Basarnas)', number: '115' },
-    { label: 'Nomor telepon darurat masalah kekerasan terhadap perempuan dan anak SAPA 129', number: '129' },
-    // Tambahkan PLN dan Pemadam Kebakaran jika masih relevan dengan "Bantuan Pertolongan Pertama"
-    // { label: 'PLN', number: '123' },
-    // { label: 'Pemadam Kebakaran', number: '113 & 1131' },
+    { label: 'Nomor telepon darurat masalah kekerasan terhadap perempuan dan anak SAPA', number: '129' },
+    { label: 'PLN', number: '123' },
+    { label: 'Pemadam Kebakaran', number: '113 & 1131' },
   ];
 
   const pertolonganData = [
@@ -83,25 +82,36 @@ export default function BantuanPertolonganPertamaScreen({ navigation }) {
       content: emergencyContactsData,
     },
     {
-      title: 'Luka dan Pendarahan', // Sesuai gambar
-      itemType: 'normal',
-      content: "Luka, luka, luka yang 'ku rasakan\nBertubi-tubi-tubi engkau berikan\nCintaku bertepuk sebelah tangan\nTapi aku balas senyum keindahan\n\nBertahan satu cinta\nBertahan satu C.I.N.T.A\nBertahan satu cinta\nBertahan satu C.I.N.T.A", // Konten dari gambar
+  title: 'Luka dan Pendarahan',
+  itemType: 'normal',
+  content: `Pertolongan pertama pada luka dan pendarahan dimulai dengan mencuci tangan menggunakan sabun atau hand sanitizer untuk mencegah infeksi. Selanjutnya, hentikan pendarahan dengan menekan luka menggunakan kain bersih selama 5–10 menit. Jika perban basah, jangan dilepas, cukup tambahkan lapisan baru di atasnya. Setelah pendarahan berhenti, bersihkan luka dengan air mengalir dan hindari penggunaan alkohol atau hidrogen peroksida secara langsung. Tutup luka menggunakan kasa steril atau perban dan ganti secara rutin, terutama jika kotor atau basah. Jika memungkinkan, angkat bagian tubuh yang terluka lebih tinggi dari jantung untuk mengurangi aliran darah. Segera cari bantuan medis jika pendarahan tidak berhenti dalam 10 menit, luka sangat dalam atau panjang, atau disebabkan oleh gigitan hewan maupun benda berkarat.`,
     },
+
     {
       title: 'Luka Bakar',
       itemType: 'normal',
-      content: 'Penanganan untuk berbagai jenis luka bakar, dari ringan hingga berat. Pastikan untuk mendinginkan area yang terbakar dengan air mengalir selama beberapa menit...',
+      content: 'Pertolongan pertama pada luka bakar dimulai dengan menghentikan sumber panas dan segera mendinginkan area yang terbakar menggunakan air mengalir selama 10–20 menit, jangan gunakan es atau air sangat dingin karena bisa merusak jaringan kulit. Hindari menyentuh atau memecahkan lepuh yang muncul. Setelah itu, tutupi luka dengan kain bersih atau perban non-lengket secara longgar untuk mencegah infeksi. Jangan mengoleskan pasta gigi, mentega, atau bahan rumah tangga lainnya pada luka bakar. Segera cari bantuan medis jika luka bakar luas, dalam, mengenai wajah, tangan, alat kelamin, atau disebabkan oleh bahan kimia atau listrik.',
     },
     {
       title: 'Patah Tulang',
       itemType: 'normal',
-      content: 'Kenali gejala patah tulang dan jangan mencoba menggerakkan bagian yang cedera. Segera cari bantuan medis profesional...',
+      content: 'Pertolongan pertama pada patah tulang dimulai dengan menjaga agar area yang diduga patah tidak digerakkan untuk mencegah cedera lebih lanjut. Jangan mencoba meluruskan atau memaksakan posisi tulang kembali. Gunakan penyangga atau bidai jika memungkinkan, dengan membalut area tersebut menggunakan kain atau perban agar tetap stabil. Kompres dingin (es yang dibungkus kain) dapat diletakkan di atas area yang cedera untuk mengurangi pembengkakan, namun jangan langsung menyentuh kulit. Segera bawa korban ke fasilitas kesehatan untuk pemeriksaan dan penanganan lebih lanjut. Jika korban tidak sadar, mengalami nyeri hebat, atau terlihat ada pendarahan hebat, segera hubungi layanan darurat.',
     },
     {
-      title: 'Patah Hati', // Sesuai gambar (humor?)
+      title: 'Patah Hati', 
       itemType: 'normal',
-      content: 'Meskipun bukan cedera fisik, patah hati juga membutuhkan "pertolongan pertama" emosional. Berikan diri Anda waktu, bicara dengan orang terpercaya, dan lakukan hal yang Anda nikmati.',
+      content: 'Pertolongan pertama pada patah hati dimulai dengan menerima dan mengakui perasaan sedih yang muncul—menangis itu tidak apa-apa. Beri waktu untuk diri sendiri sembuh, jangan memaksakan untuk "baik-baik saja" seketika. Hindari menyendiri terlalu lama; ceritakan perasaanmu pada teman dekat atau orang yang kamu percaya. Alihkan perhatian dengan melakukan hal-hal yang kamu sukai atau coba hal baru yang positif. Jaga pola makan, tidur, dan aktivitas fisik agar tubuh tetap sehat saat hati sedang rapuh. Jika perasaan sedih berlarut-larut atau mulai mengganggu aktivitas sehari-hari, jangan ragu untuk mencari bantuan dari konselor atau profesional kesehatan mental. Ingat, patah hati adalah bagian dari hidup, tapi kamu tidak harus menghadapinya sendirian.',
     },
+    {
+      title: 'depresi', 
+      itemType: 'normal',
+      content: 'Pertolongan pertama pada depresi dimulai dengan mengenali tanda-tandanya, seperti perasaan sedih berkepanjangan, kehilangan minat, kelelahan, perubahan pola tidur atau makan, hingga merasa tidak berharga. Jika kamu atau orang terdekat mengalami gejala ini, penting untuk tidak mengabaikannya. Ajak berbicara secara terbuka dan tanpa menghakimi, tunjukkan bahwa kamu peduli dan siap mendengarkan. Hindari memberi nasihat yang menyederhanakan kondisi, seperti “ayo semangat” atau “jangan dipikirkan.” Dorong untuk mencari bantuan profesional seperti psikolog atau psikiater, dan dampingi bila perlu. Jaga rutinitas harian, tetap aktif, dan cari dukungan dari lingkungan positif. Depresi bisa diatasi, dan bantuan tersedia—langkah kecil ke arah yang tepat sangat berarti.'
+    },
+     {
+      title: 'Kecelakaan', 
+      itemType: 'normal',
+      content: 'Pertolongan pertama pada orang yang baru mengalami kecelakaan dimulai dengan memastikan keamanan lokasi, baik bagi korban maupun penolong. Jangan memindahkan korban kecuali berada dalam bahaya langsung (seperti risiko kebakaran atau ledakan). Periksa respons korban dengan memanggil atau menyentuh perlahan. Jika korban tidak sadar dan tidak bernapas, segera lakukan CPR jika terlatih, dan hubungi layanan darurat secepat mungkin. Jika korban sadar, tenangkan dengan suara lembut dan yakinkan bahwa bantuan sedang dalam perjalanan. Hentikan pendarahan besar dengan menekan luka menggunakan kain bersih, dan jangan memberikan makanan atau minuman karena bisa mengganggu penanganan medis. Jaga agar korban tetap hangat dan stabil sampai bantuan datang', 
+    }
     // Tambahkan item lain seperti "Pedoman CPR", "Serangan Jantung", "Mimisan" jika perlu
   ];
 
@@ -224,18 +234,20 @@ const styles = StyleSheet.create({
   },
   emergencyContactRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between', // Ini akan membantu mendorong nomor ke kanan
+    alignItems: 'flex-start',       // Jaga agar teks tetap rata atas saat wrap
     marginBottom: 8,
-    alignItems: 'flex-start', // Untuk teks yang mungkin wrap
-  },
-  emergencyLabel: {
+  }, 
+   emergencyLabel: {
     fontSize: 15,
-    color: '#D32F2F', // Warna teks label (merah)
-    marginRight: 5,
+    color: '#D32F2F',
+    marginRight: 8, // Beri sedikit lebih banyak spasi
+    flex: 1,     
   },
   emergencyNumber: {
     fontSize: 15,
     color: '#D32F2F',
     fontWeight: 'bold',
-    flexShrink: 1, // Agar nomor bisa wrap jika panjang
+    //flexShrink: 1, // Agar nomor bisa wrap jika panjang
   },
 });

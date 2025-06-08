@@ -11,11 +11,12 @@ import NamaPenggunaScreen from './screens/NamaPenggunaScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import LoadingScreen from './screens/LoadingScreen'; // <-- IMPORT LoadingScreen DARI FILE BARU
 // ... (import screen lainnya yang sudah ada)
-import PHQ9Screen from './screens/PHQ9Screen';
-import PSQIScreen from './screens/PSQIScreen';
-import LifestyleScreen from './screens/LifestyleScreen';
+import PHQ9Screen from './quiz-screen/PHQ9Screen.js';
+import PSQIScreen from './quiz-screen/PSQIScreen';
+import LifestyleScreen from './quiz-screen/LifestyleScreen.js';
+
 import FirstAidScreen from './screens/FirstAidScreen';
-import PHQ9ResultScreen from './screens/PHQ9ResultScreen';
+import PHQ9ResultScreen from './result-screen/PHQ9ResultScreen.js';
 import Panduanstres from './panduan-screen/Panduanstres';
 import Panduangayahidup from './panduan-screen/panduangayahidup';
 import Panduantidur from './panduan-screen/panduantidur';
@@ -23,8 +24,8 @@ import RiwayatScreen from './screens/RiwayatScreen';
 import RiwayatDetailScreen from './screens/RiwayatDetailScreen';
 import SettingsScreen from './screens/SettingsScreen';  
 import AboutUsScreen from './screens/AboutUsScreen';
-import PSQIResultScreen from './screens/PSQIResultScreen.js';
-import LifestyleResultScreen from './screens/LifestyleResultScreen.js'
+import PSQIResultScreen from './result-screen/PSQIResultScreen.js';
+import LifestyleResultScreen from './result-screen/LifestyleResultScreen.js'
 
 import { initDatabase, getAppSetting } from './database/database.js';
 
